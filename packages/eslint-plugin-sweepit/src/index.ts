@@ -16,6 +16,8 @@ import noObjectProps from './rules/no-object-props';
 import noArrayProps from './rules/no-array-props';
 import jsxBemCompoundNaming from './rules/jsx-bem-compound-naming';
 import jsxCompoundPartExportNaming from './rules/jsx-compound-part-export-naming';
+import noPassThroughProps from './rules/no-pass-through-props';
+import jsxFlatOwnerTree from './rules/jsx-flat-owner-tree';
 
 const plugin: ESLint.Plugin = {
   meta: {
@@ -39,6 +41,8 @@ const plugin: ESLint.Plugin = {
     'no-array-props': noArrayProps,
     'jsx-bem-compound-naming': jsxBemCompoundNaming,
     'jsx-compound-part-export-naming': jsxCompoundPartExportNaming,
+    'no-pass-through-props': noPassThroughProps,
+    'jsx-flat-owner-tree': jsxFlatOwnerTree,
   },
   configs: {},
 };

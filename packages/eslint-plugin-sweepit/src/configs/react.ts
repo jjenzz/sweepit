@@ -60,6 +60,8 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'sweepit/no-array-props': 'error',
       'sweepit/jsx-bem-compound-naming': 'error',
       'sweepit/jsx-compound-part-export-naming': 'error',
+      'sweepit/no-pass-through-props': 'error',
+      'sweepit/jsx-flat-owner-tree': 'error',
     },
   };
 
