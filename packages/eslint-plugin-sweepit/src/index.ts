@@ -14,6 +14,8 @@ import noElementProps from './rules/no-element-props';
 import noComponentTypeProps from './rules/no-componenttype-props';
 import noObjectProps from './rules/no-object-props';
 import noArrayProps from './rules/no-array-props';
+import jsxBemCompoundNaming from './rules/jsx-bem-compound-naming';
+import jsxCompoundPartExportNaming from './rules/jsx-compound-part-export-naming';
 
 const plugin: ESLint.Plugin = {
   meta: {
@@ -35,6 +37,8 @@ const plugin: ESLint.Plugin = {
     'no-componenttype-props': noComponentTypeProps,
     'no-object-props': noObjectProps,
     'no-array-props': noArrayProps,
+    'jsx-bem-compound-naming': jsxBemCompoundNaming,
+    'jsx-compound-part-export-naming': jsxCompoundPartExportNaming,
   },
   configs: {},
 };
