@@ -1,0 +1,42 @@
+{
+	"name": "eslint-plugin-sweepit",
+	"version": "0.0.0",
+	"description": "Opinionated architectural lint rules for Sweepit.",
+	"license": "MIT",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@typescript-eslint/eslint-plugin": "^8.46.0",
+		"@typescript-eslint/parser": "^8.46.0",
+		"eslint-plugin-react": "^7.37.5",
+		"eslint-plugin-react-hooks": "^7.0.0",
+		"eslint-plugin-react-you-might-not-need-an-effect": "^0.3.2"
+	},
+	"peerDependencies": {
+		"eslint": "^9.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.3.0",
+		"eslint": "^9.35.0",
+		"typescript": "^5.9.2",
+		"tsup": "^8.5.0",
+		"vitest": "^2.1.3"
+	}
+}
