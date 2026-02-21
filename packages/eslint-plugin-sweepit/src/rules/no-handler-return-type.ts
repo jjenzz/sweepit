@@ -100,10 +100,11 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow handler prop definitions (on*) that expect return values. Handler contracts must return void.',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-handler-return-type.md',
     },
     messages: {
       noHandlerReturnType:
-        "Handler prop '{{prop}}' expects return type '{{returnType}}'. Handler prop definitions must not expect return values; use void.",
+        "Handler prop '{{prop}}' expects return type '{{returnType}}'. Handler prop definitions must not expect return values; use void. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-handler-return-type.md.",
     },
     schema: [],
   },

@@ -45,10 +45,11 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Enforce compound component export naming by matching exported component names to the file stem block prefix',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-bem-compound-naming.md',
     },
     messages: {
       exportedPartMustUseBlockPrefix:
-        "Exported component '{{name}}' should be prefixed with compound block '{{block}}' in this file (for example '{{example}}').",
+        "Exported component '{{name}}' should be prefixed with compound block '{{block}}' in this file (for example '{{example}}'). See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-bem-compound-naming.md.",
     },
     schema: [],
   },

@@ -19,10 +19,11 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow exporting use*Context hooks. Keep context hooks private to the component module.',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-exported-context-hooks.md',
     },
     messages: {
       noExportedContextHook:
-        "Do not export context hook '{{name}}'. Keep it private and expose a controlled component API instead (for example `open` + `onOpenChange`). See docs/rules/no-exported-context-hooks.md.",
+        "Do not export context hook '{{name}}'. Keep it private and expose a controlled component API instead (for example `open` + `onOpenChange`). See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-exported-context-hooks.md.",
     },
     schema: [],
   },

@@ -50,16 +50,17 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Enforce compound export aliasing from file-stem block and disallow runtime object export APIs',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-compound-part-export-naming.md',
     },
     messages: {
       requirePartAlias:
-        "Export part '{{local}}' as '{{part}}' for block '{{block}}' (export { {{local}} as {{part}} }).",
+        "Export part '{{local}}' as '{{part}}' for block '{{block}}' (export { {{local}} as {{part}} }). See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-compound-part-export-naming.md.",
       requireRootExport:
-        "Compound block '{{block}}' exports parts. Also export its root namespace as `export { {{block}} as Root }`.",
+        "Compound block '{{block}}' exports parts. Also export its root namespace as `export { {{block}} as Root }`. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-compound-part-export-naming.md.",
       requireRootAlias:
-        "Export block '{{block}}' as 'Root' (export { {{block}} as Root }).",
+        "Export block '{{block}}' as 'Root' (export { {{block}} as Root }). See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-compound-part-export-naming.md.",
       noRuntimeObjectExport:
-        "Avoid exporting runtime object '{{name}}' for compound APIs. Export root/parts with aliases instead.",
+        "Avoid exporting runtime object '{{name}}' for compound APIs. Export root/parts with aliases instead. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-compound-part-export-naming.md.",
     },
     schema: [],
   },

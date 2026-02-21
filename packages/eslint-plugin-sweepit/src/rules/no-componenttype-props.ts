@@ -87,10 +87,11 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow ComponentType/FC/FunctionComponent in prop definitions. Prefer asChild or render prop for polymorphism.',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-componenttype-props.md',
     },
     messages: {
       noComponentTypeProps:
-        "Prop '{{prop}}' uses ComponentType/FC/FunctionComponent. Prefer asChild or a render prop for polymorphism.",
+        "Prop '{{prop}}' uses ComponentType/FC/FunctionComponent. Prefer asChild or a render prop for polymorphism. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-componenttype-props.md.",
     },
     schema: [],
   },

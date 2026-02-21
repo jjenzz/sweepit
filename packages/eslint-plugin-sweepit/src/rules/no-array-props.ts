@@ -11,10 +11,11 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Disallow array-valued JSX props',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-array-props.md',
     },
     messages: {
       noArrayProps:
-        "Array value passed to prop '{{prop}}'. Avoid array props; prefer primitive props and compound composition. If array-shaped data must be shared across parts, use private context inside the compound root instead of passing array props.",
+        "Array value passed to prop '{{prop}}'. Avoid array props; prefer primitive props and compound composition. If array-shaped data must be shared across parts, use private context inside the compound root instead of passing array props. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-array-props.md.",
     },
     schema: [],
   },

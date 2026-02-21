@@ -251,10 +251,11 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow pass-through-only props in component owners (accepting props only to forward them)',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-pass-through-props.md',
     },
     messages: {
       noPassThroughProp:
-        "Prop '{{prop}}' in '{{component}}' is only forwarded to '{{forwardedTo}}'. Remove the pass-through prop, derive a local value, or expose composition via children at the ownership boundary.",
+        "Prop '{{prop}}' in '{{component}}' is only forwarded to '{{forwardedTo}}'. Remove the pass-through prop, derive a local value, or expose composition via children at the ownership boundary. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-pass-through-props.md.",
     },
     schema: [],
   },

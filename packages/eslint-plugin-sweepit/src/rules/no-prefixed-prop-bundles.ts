@@ -51,10 +51,11 @@ const rule: Rule.RuleModule = {
 		docs: {
 			description:
 				"Disallow bundles of similarly-prefixed JSX props that suggest over-grouped component APIs",
+			url: "https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-prefixed-prop-bundles.md",
 		},
 		messages: {
 			noPrefixedPropBundle:
-				"Prop '{{prop}}' is part of a '{{prefix}}*' prop bundle ({{count}} props). Prefer unprefixed, explicit props and compound composition. If grouped data must be shared, use context.",
+				"Prop '{{prop}}' is part of a '{{prefix}}*' prop bundle ({{count}} props). Prefer unprefixed, explicit props and compound composition. If grouped data must be shared, use context. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-prefixed-prop-bundles.md.",
 		},
 		schema: [
 			{

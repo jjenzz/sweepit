@@ -93,10 +93,11 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow use* functions that do not call any React hook (useState, useEffect, useReducer, useRef, useContext)',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-useless-hook.md',
     },
     messages: {
       noUselessHook:
-        "Function '{{name}}' is named like a hook but does not call any React hook. Rename or add hook calls.",
+        "Function '{{name}}' is named like a hook but does not call any React hook. Rename or add hook calls. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-useless-hook.md.",
     },
     schema: [],
   },

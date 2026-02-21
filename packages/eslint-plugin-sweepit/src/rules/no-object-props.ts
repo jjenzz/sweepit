@@ -11,10 +11,11 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Disallow object-valued JSX props',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-object-props.md',
     },
     messages: {
       noObjectProps:
-        "Object value passed to prop '{{prop}}'. Avoid object props; prefer primitive props and compound composition. If object-shaped data must be shared across parts, use private context inside the compound root instead of passing object props.",
+        "Object value passed to prop '{{prop}}'. Avoid object props; prefer primitive props and compound composition. If object-shaped data must be shared across parts, use private context inside the compound root instead of passing object props. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-object-props.md.",
     },
     schema: [],
   },

@@ -64,10 +64,11 @@ const rule: Rule.RuleModule = {
 		docs: {
 			description:
 				"Disallow ReactNode/ReactElement-typed props except children/render.",
+			url: "https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-element-props.md",
 		},
 		messages: {
 			noElementProps:
-				"Prop '{{prop}}' has an element type (ReactNode/ReactElement). Use compound composition instead: expose parts and compose via 'children' (for example <Card><Card.Header /></Card>) rather than passing '{{prop}}' as an element prop.",
+				"Prop '{{prop}}' has an element type (ReactNode/ReactElement). Use compound composition instead: expose parts and compose via 'children' (for example <Card><Card.Header /></Card>) rather than passing '{{prop}}' as an element prop. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-element-props.md.",
 		},
 		schema: [],
 	},

@@ -284,10 +284,11 @@ const rule: Rule.RuleModule = {
 		docs: {
 			description:
 				"Prefer on{Noun}{Verb} over on{Verb}{Noun} for handler prop names (e.g. onValueChange over onChangeValue).",
+			url: "https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-on-noun-verb-handler-props.md",
 		},
 		messages: {
 			preferNounVerb:
-				"Prefer '{{suggestion}}' over '{{prop}}' (noun before verb).",
+				"Prefer '{{suggestion}}' over '{{prop}}' (noun before verb). See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-on-noun-verb-handler-props.md.",
 		},
 		schema: [
 			{
