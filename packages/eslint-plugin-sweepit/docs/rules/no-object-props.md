@@ -6,6 +6,8 @@ Object props often couple components to data models and business-layer shapes.
 
 - Passing object props encourages broad, tightly coupled component contracts.
 - Teams often pass whole row/domain objects when components only need a few fields.
+- This couples low-level UI components to domain model shapes (for example database row fields), which reduces reusability.
+- When business data changes, leaf UI component APIs churn too, even when the visual concern is small.
 - Composition with primitive props keeps APIs explicit and reusable.
 
 ## Rule Details

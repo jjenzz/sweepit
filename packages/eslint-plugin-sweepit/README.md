@@ -34,6 +34,7 @@ export default [...sweepit.configs.react];
 | `sweepit/no-componenttype-props` | Disallows `ComponentType`/`FC`/`FunctionComponent` props in component contracts. |
 | `sweepit/no-object-props` | Disallows object-valued JSX props (including typed identifiers/calls), encouraging explicit primitive contracts and composition. |
 | `sweepit/no-array-props` | Disallows array-valued JSX props (including typed identifiers/calls), encouraging explicit primitive contracts and composition. |
+| `sweepit/no-prefixed-prop-bundles` | Treats grouped prefixed props (for example `userName/userEmail/userRole`) as a composition-pressure signal once they hit a configured threshold (default `3`). |
 | `sweepit/jsx-bem-compound-naming` | Enforces block-prefixed naming for exported compound component parts. |
 | `sweepit/jsx-compound-part-export-naming` | Enforces `Root`/part alias export naming for compound component modules. |
 | `sweepit/no-pass-through-props` | Disallows props that are only forwarded unchanged to children. |

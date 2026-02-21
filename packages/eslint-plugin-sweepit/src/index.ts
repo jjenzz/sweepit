@@ -14,6 +14,7 @@ import noElementProps from './rules/no-element-props';
 import noComponentTypeProps from './rules/no-componenttype-props';
 import noObjectProps from './rules/no-object-props';
 import noArrayProps from './rules/no-array-props';
+import noPrefixedPropBundles from './rules/no-prefixed-prop-bundles';
 import jsxBemCompoundNaming from './rules/jsx-bem-compound-naming';
 import jsxCompoundPartExportNaming from './rules/jsx-compound-part-export-naming';
 import noPassThroughProps from './rules/no-pass-through-props';
@@ -39,6 +40,7 @@ const plugin: ESLint.Plugin = {
     'no-componenttype-props': noComponentTypeProps,
     'no-object-props': noObjectProps,
     'no-array-props': noArrayProps,
+    'no-prefixed-prop-bundles': noPrefixedPropBundles,
     'jsx-bem-compound-naming': jsxBemCompoundNaming,
     'jsx-compound-part-export-naming': jsxCompoundPartExportNaming,
     'no-pass-through-props': noPassThroughProps,
