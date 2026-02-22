@@ -16,6 +16,47 @@ import sweepit from 'eslint-plugin-sweepit';
 export default [...sweepit.configs.react];
 ```
 
+## What `configs.react` includes
+
+The exported React config is opinionated. It enables:
+
+- Third-party React/TS plugins:
+  - `eslint-plugin-react`
+  - `eslint-plugin-react-hooks`
+  - `eslint-plugin-react-you-might-not-need-an-effect`
+  - `@typescript-eslint/eslint-plugin` (with `@typescript-eslint/parser`)
+- Third-party rules (all as `error`):
+  - `react/jsx-handler-names`
+  - `react/jsx-no-constructed-context-values`
+  - `react/jsx-no-useless-fragment`
+  - `react/jsx-pascal-case`
+  - `react/no-unstable-nested-components`
+  - `react-hooks/rules-of-hooks`
+  - `react-hooks/exhaustive-deps`
+  - `react-you-might-not-need-an-effect/no-effect`
+- Sweepit rules listed below (all as `error` in the default config)
+
+## Customize rule defaults
+
+Override any default rule from `sweepit.configs.react`.
+
+```js
+import sweepit from 'eslint-plugin-sweepit';
+
+export default [
+  ...sweepit.configs.react,
+  {
+    rules: {
+      // disable a default rule
+      'react-hooks/exhaustive-deps': 'off',
+      // tune sweepit rules
+      'sweepit/no-array-props': 'warn',
+      'sweepit/no-prefixed-prop-bundles': ['error', { threshold: 4 }],
+    },
+  },
+];
+```
+
 ## Included rules
 
 | Rule | Description |
