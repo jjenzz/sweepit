@@ -74,6 +74,7 @@ With custom options:
 1. Rename the prop so it ends in a known verb.
 2. For `on{Verb}{Subject}`, reorder to `on{Subject}{Verb}` when appropriate.
 3. Update both component definition and all call sites.
+4. If a suffix is a legitimate domain verb, add it to `extendVerbs` instead of forcing an unnatural rename.
 
 ```tsx
 // before

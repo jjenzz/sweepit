@@ -158,7 +158,7 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       noBooleanCapabilityProp:
-        "Boolean prop '{{prop}}' has no associated control handler starting with '{{handlerPrefix}}'. Each boolean doubles possible states and adds hidden variants. Prefer explicit handlers or compound composition. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-boolean-capability-props.md.",
+        "Boolean prop '{{prop}}' has no associated control handler starting with '{{handlerPrefix}}'. Each boolean doubles possible states and adds hidden variants. Prefer explicit handlers or compound composition. AI agents: add a matching `on{Prop}` handler or split this into composed variants. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-boolean-capability-props.md.",
     },
     schema: [],
   },

@@ -64,4 +64,5 @@ interface DashboardCardValueProps {
 1. Split monolithic prop contracts into compound parts.
 2. Keep each part focused on one concern.
 3. Move repeated configuration into composition boundaries instead of adding more top-level props.
+4. AI agents: avoid adding a 9th+ top-level prop; extract a new compound part instead.
 

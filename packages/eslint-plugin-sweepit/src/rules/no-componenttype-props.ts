@@ -176,7 +176,7 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       noComponentTypeProps:
-        "Prop '{{prop}}' uses ComponentType/FC/FunctionComponent. Prefer asChild or a render prop for polymorphism. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-componenttype-props.md.",
+        "Prop '{{prop}}' uses ComponentType/FC/FunctionComponent. Prefer asChild or a render prop for polymorphism. AI agents: replace component-constructor props with composition or explicit render callbacks. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-componenttype-props.md.",
     },
     schema: [],
   },

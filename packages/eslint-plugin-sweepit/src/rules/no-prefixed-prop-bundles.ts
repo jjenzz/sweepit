@@ -144,7 +144,7 @@ const rule: Rule.RuleModule = {
 		},
 		messages: {
 			noPrefixedPropBundle:
-				"Prop '{{prop}}' is part of a '{{prefix}}*' prop bundle ({{count}} props). Prefer unprefixed, explicit props and compound composition. If grouped data must be shared, use context. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-prefixed-prop-bundles.md.",
+				"Prop '{{prop}}' is part of a '{{prefix}}*' prop bundle ({{count}} props). Prefer unprefixed, explicit props and compound composition. If grouped data must be shared, use context. AI agents: split monolithic props into compound parts instead of introducing object bundles. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-prefixed-prop-bundles.md.",
 		},
 		schema: [
 			{

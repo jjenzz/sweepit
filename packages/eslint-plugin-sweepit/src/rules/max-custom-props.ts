@@ -66,7 +66,7 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       maxCustomProps:
-        "Component prop contract '{{name}}' declares {{count}} custom props (max {{threshold}}). This is a composition pressure signal; prefer splitting APIs into compound parts. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/max-custom-props.md.",
+        "Component prop contract '{{name}}' declares {{count}} custom props (max {{threshold}}). This is a composition pressure signal; prefer splitting APIs into compound parts. AI agents: extract parts before adding more top-level props. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/max-custom-props.md.",
     },
     schema: [
       {

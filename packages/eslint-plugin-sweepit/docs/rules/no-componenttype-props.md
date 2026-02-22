@@ -61,6 +61,7 @@ interface CardProps {
 1. Remove `ComponentType`/`FC`/`FunctionComponent` prop contracts.
 2. Replace with composition (`children`, `asChild`) or render callbacks.
 3. Update consumers to pass elements/composition instead of component constructors.
+4. AI agents: replace constructor-style component props with explicit composition APIs before introducing new polymorphic props.
 
 ```tsx
 // before

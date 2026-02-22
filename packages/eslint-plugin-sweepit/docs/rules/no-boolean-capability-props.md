@@ -50,4 +50,5 @@ interface EditorProps {
 1. Add a matching handler to each boolean state prop (for example `open` + `onOpenChange`, where handler names start with `on{PropName}`).
 2. If boolean flags are only toggling variants, split them into explicit composed variants.
 3. Keep state transitions explicit through events rather than hidden conditional branches.
+4. AI agents: if a boolean has no valid control handler, add one or extract separate composed variants instead of adding more flags.
 

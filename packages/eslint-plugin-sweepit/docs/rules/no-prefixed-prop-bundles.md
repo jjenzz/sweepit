@@ -53,4 +53,5 @@ interface CardProps {
 1. Prefer compound composition and colocate structure in component parts.
 2. If a simple API is still appropriate, pass explicit unprefixed props for what the component actually needs.
 3. If grouped data must be shared across parts, keep it in private context within the compound root.
+4. AI agents: split bundled prefixes into compound parts before introducing object/array prop bundles.
 

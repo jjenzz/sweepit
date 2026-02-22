@@ -100,7 +100,7 @@ function getTypeReferenceName(typeNode: Rule.Node): string | null {
 function collectOptionalPropNamesFromMembers(members: Rule.Node[]): Set<string> {
   const optionalPropNames = new Set<string>();
   for (const member of members) {
-    const maybeProperty = member as TSPropertySignatureNode;
+    const maybeProperty = member as unknown as TSPropertySignatureNode;
     if (maybeProperty.type !== 'TSPropertySignature' || !maybeProperty.optional) continue;
     const propName = getPropertyName(maybeProperty.key);
     if (!propName) continue;
@@ -134,7 +134,7 @@ function collectDefaultedParamKeys(paramNode: Rule.Node): Set<string> {
   if (maybeObjectPattern.type !== 'ObjectPattern') return defaultedKeys;
 
   for (const propertyNode of maybeObjectPattern.properties ?? []) {
-    const maybeProperty = propertyNode as PropertyNode;
+    const maybeProperty = propertyNode as unknown as PropertyNode;
     if (maybeProperty.type !== 'Property') continue;
     const propName = getPropertyName(maybeProperty.key);
     if (!propName) continue;
@@ -152,7 +152,7 @@ function getParamTypeAnnotationNode(paramNode: Rule.Node): Rule.Node | null {
     return maybeAnnotatedParam.typeAnnotation.typeAnnotation;
   }
 
-  const maybeAssignment = paramNode as AssignmentPatternNode;
+  const maybeAssignment = paramNode as unknown as AssignmentPatternNode;
   if (maybeAssignment.type !== 'AssignmentPattern') return null;
   const maybeAssignmentLeft = maybeAssignment.left as { typeAnnotation?: TSTypeAnnotationNode };
   return maybeAssignmentLeft.typeAnnotation?.typeAnnotation ?? null;
@@ -188,7 +188,7 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       noOptionalPropWithoutDefault:
-        "Component '{{component}}' prop '{{prop}}' is optional without a default at the component boundary. Default configurable props, and keep time-based readiness checks outside component prop contracts. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-optional-props-without-defaults.md.",
+        "Component '{{component}}' prop '{{prop}}' is optional without a default at the component boundary. Default configurable props, and keep time-based readiness checks outside component prop contracts. AI agents: default this prop at the parameter boundary or move readiness checks upstream. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-optional-props-without-defaults.md.",
     },
     schema: [],
   },
