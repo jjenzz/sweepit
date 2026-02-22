@@ -37,7 +37,7 @@ describe('plugin:sweepit/react', () => {
     expect(reactConfig.rules?.['sweepit/no-exported-context-hooks']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-handler-return-type']).toBe('error');
     expect(reactConfig.rules?.['sweepit/jsx-server-action-prop-suffix']).toBe('error');
-    expect(reactConfig.rules?.['sweepit/jsx-on-noun-verb-handler-props']).toBe('error');
+    expect(reactConfig.rules?.['sweepit/jsx-on-handler-verb-suffix']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-render-helper-functions']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-element-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-componenttype-props']).toBe('error');

@@ -8,7 +8,7 @@ import noHookJsx from './rules/no-hook-jsx';
 import noExportedContextHooks from './rules/no-exported-context-hooks';
 import noHandlerReturnType from './rules/no-handler-return-type';
 import jsxServerActionPropSuffix from './rules/jsx-server-action-prop-suffix';
-import jsxOnNounVerbHandlerProps from './rules/jsx-on-noun-verb-handler-props';
+import jsxOnHandlerVerbSuffix from './rules/jsx-on-handler-verb-suffix';
 import noRenderHelperFunctions from './rules/no-render-helper-functions';
 import noElementProps from './rules/no-element-props';
 import noComponentTypeProps from './rules/no-componenttype-props';
@@ -34,7 +34,7 @@ const plugin: ESLint.Plugin = {
     'no-exported-context-hooks': noExportedContextHooks,
     'no-handler-return-type': noHandlerReturnType,
     'jsx-server-action-prop-suffix': jsxServerActionPropSuffix,
-    'jsx-on-noun-verb-handler-props': jsxOnNounVerbHandlerProps,
+    'jsx-on-handler-verb-suffix': jsxOnHandlerVerbSuffix,
     'no-render-helper-functions': noRenderHelperFunctions,
     'no-element-props': noElementProps,
     'no-componenttype-props': noComponentTypeProps,

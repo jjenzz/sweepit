@@ -52,7 +52,7 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'sweepit/no-exported-context-hooks': 'error',
       'sweepit/no-handler-return-type': 'error',
       'sweepit/jsx-server-action-prop-suffix': 'error',
-      'sweepit/jsx-on-noun-verb-handler-props': 'error',
+      'sweepit/jsx-on-handler-verb-suffix': 'error',
       'sweepit/no-render-helper-functions': 'error',
       'sweepit/no-element-props': 'error',
       'sweepit/no-componenttype-props': 'error',

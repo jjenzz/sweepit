@@ -1,6 +1,6 @@
 import { describe, it } from "vitest";
 import { RuleTester } from "eslint";
-import rule from "../../src/rules/jsx-on-noun-verb-handler-props";
+import rule from "../../src/rules/jsx-on-handler-verb-suffix";
 import tsParser from "@typescript-eslint/parser";
 
 RuleTester.describe = describe;
@@ -17,8 +17,8 @@ const ruleTester = new RuleTester({
 	},
 });
 
-describe("jsx-on-noun-verb-handler-props", () => {
-	ruleTester.run("jsx-on-noun-verb-handler-props", rule, {
+describe("jsx-on-handler-verb-suffix", () => {
+	ruleTester.run("jsx-on-handler-verb-suffix", rule, {
 		valid: [
 			"<Input onValueChange={handleChange} />",
 			"<Form onFormSubmit={handleSubmit} />",
@@ -28,29 +28,27 @@ describe("jsx-on-noun-verb-handler-props", () => {
 			"<button onClick={handleClick} />",
 			"<input onChange={handleChange} />",
 			"<input onFocus={handleFocus} onBlur={handleBlur} />",
-			"<Input onInputChange={handleInput} />",
+			"<Input onInputValidate={handleValidate} />",
 			"<Dropdown onOptionSelect={handleSelect} />",
 			"<Dialog onDialogOpen={handleOpen} />",
 			"<Toggle onToggleChange={handleToggle} />",
 			"<FeatureFlag onFeatureDisable={handleDisable} />",
-			"<FeatureFlag onFeatureDisabled={handleDisabled} />",
 			"<input onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} />",
-			"<div onSomethingCustom={handler} />",
 			{
 				code: "<Item onItemArchived={handleArchived} />",
-				options: [{ extendVerbs: ["Archived"], extendNouns: ["Item"] }],
-			},
-			{
-				code: "<Input onValueChange={handleChange} />",
-				options: [{ extendVerbs: ["Archived"], extendNouns: ["Item"] }],
+				options: [{ extendVerbs: ["Archived"] }],
 			},
 			{
 				code: "<Item onItemArchived={handleArchived} />",
-				options: [{ extendVerbs: ["archived"], extendNouns: ["item"] }],
+				options: [{ extendVerbs: ["archived"] }],
 			},
 			{
 				code: "<Item onItemArchived={handleArchived} />",
-				options: [{ extendVerbs: ["ArChIvEd"], extendNouns: ["ItEm"] }],
+				options: [{ extendVerbs: ["ArChIvEd"] }],
+			},
+			{
+				code: "<Input onValueArchived={handleArchived} />",
+				options: [{ extendVerbs: ["archived"] }],
 			},
 		],
 		invalid: [
@@ -58,7 +56,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Input onChangeValue={handleChange} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onChangeValue", suggestion: "onValueChange" },
 					},
 				],
@@ -67,7 +65,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Form onSubmitForm={handleSubmit} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onSubmitForm", suggestion: "onFormSubmit" },
 					},
 				],
@@ -76,7 +74,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Modal onCloseModal={handleClose} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onCloseModal", suggestion: "onModalClose" },
 					},
 				],
@@ -85,7 +83,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Select onChangeOption={handleChange} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onChangeOption", suggestion: "onOptionChange" },
 					},
 				],
@@ -94,26 +92,17 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Button onClickButton={handleClick} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onClickButton", suggestion: "onButtonClick" },
 					},
 				],
 			},
 			{
-				code: "<Input onFocusInput={handleFocus} />",
+				code: "<Input onHoverState={handleHover} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
-						data: { prop: "onFocusInput", suggestion: "onInputFocus" },
-					},
-				],
-			},
-			{
-				code: "<Input onBlurInput={handleBlur} />",
-				errors: [
-					{
-						messageId: "preferNounVerb",
-						data: { prop: "onBlurInput", suggestion: "onInputBlur" },
+						messageId: "preferVerbSuffix",
+						data: { prop: "onHoverState", suggestion: "onStateHover" },
 					},
 				],
 			},
@@ -121,7 +110,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Dropdown onSelectOption={handleSelect} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onSelectOption", suggestion: "onOptionSelect" },
 					},
 				],
@@ -130,7 +119,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Dialog onOpenDialog={handleOpen} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onOpenDialog", suggestion: "onDialogOpen" },
 					},
 				],
@@ -139,7 +128,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<Toggle onChangeToggle={handleToggle} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onChangeToggle", suggestion: "onToggleChange" },
 					},
 				],
@@ -148,7 +137,7 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<FeatureFlag onDisableFeature={handleDisable} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: {
 							prop: "onDisableFeature",
 							suggestion: "onFeatureDisable",
@@ -160,41 +149,54 @@ describe("jsx-on-noun-verb-handler-props", () => {
 				code: "<FeatureFlag onDisabledFeature={handleDisabled} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
-						data: {
-							prop: "onDisabledFeature",
-							suggestion: "onFeatureDisabled",
-						},
+						messageId: "mustEndWithVerb",
+						data: { prop: "onDisabledFeature" },
+					},
+				],
+			},
+			{
+				code: "<FeatureFlag onFeatureDisabled={handleDisabled} />",
+				errors: [
+					{
+						messageId: "mustEndWithVerb",
+						data: { prop: "onFeatureDisabled" },
+					},
+				],
+			},
+			{
+				code: "<div onSomethingCustom={handler} />",
+				errors: [
+					{
+						messageId: "mustEndWithVerb",
+						data: { prop: "onSomethingCustom" },
 					},
 				],
 			},
 			{
 				code: "<Item onArchivedItem={handleArchived} />",
-				options: [{ extendVerbs: ["Archived"], extendNouns: ["Item"] }],
+				options: [{ extendVerbs: ["Archived"] }],
 				errors: [
 					{
-						messageId: "preferNounVerb",
+						messageId: "preferVerbSuffix",
 						data: { prop: "onArchivedItem", suggestion: "onItemArchived" },
 					},
 				],
 			},
 			{
-				code: "<Input onChangeValue={handleChange} />",
-				options: [{ extendVerbs: ["Archived"], extendNouns: ["Item"] }],
+				code: "<Input onValueThing={handleThing} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
-						data: { prop: "onChangeValue", suggestion: "onValueChange" },
+						messageId: "mustEndWithVerb",
+						data: { prop: "onValueThing" },
 					},
 				],
 			},
 			{
-				code: "<Item onArchivedItem={handleArchived} />",
-				options: [{ extendVerbs: ["archived"], extendNouns: ["item"] }],
+				code: "<Input onValueArchived={handleArchived} />",
 				errors: [
 					{
-						messageId: "preferNounVerb",
-						data: { prop: "onArchivedItem", suggestion: "onItemArchived" },
+						messageId: "mustEndWithVerb",
+						data: { prop: "onValueArchived" },
 					},
 				],
 			},
