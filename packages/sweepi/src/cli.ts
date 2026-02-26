@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { initializeToolchain, runSweepit } from './toolchain';
+import { initializeToolchain, runSweepi } from './toolchain';
 
 async function run(): Promise<void> {
   const command = process.argv[2];
@@ -15,33 +15,33 @@ async function run(): Promise<void> {
 
     if (initialization.installedDependencies) {
       process.stdout.write(
-        `Initialized Sweepit toolchain in ${initialization.toolchainDirectory}\n`,
+        `Initialized Sweepi toolchain in ${initialization.toolchainDirectory}\n`,
       );
       return;
     }
 
     process.stdout.write(
-      `Sweepit toolchain already initialized in ${initialization.toolchainDirectory}\n`,
+      `Sweepi toolchain already initialized in ${initialization.toolchainDirectory}\n`,
     );
     return;
   }
 
   if (command.startsWith('-')) {
-    throw new Error(`Unknown flag "${command}". Try "sweepit --help".`);
+    throw new Error(`Unknown flag "${command}". Try "sweepi --help".`);
   }
 
-  const lintExitCode = await runSweepit(command);
+  const lintExitCode = await runSweepi(command);
   process.exitCode = lintExitCode;
 }
 
 function printHelp(): void {
   process.stdout.write(`Usage:
-  sweepit <project-dir>
-  sweepit init
+  sweepi <project-dir>
+  sweepi init
 
 Commands:
-  <project-dir>    Initialize if required, then run eslint using ~/.sweepit
-  init    Create ~/.sweepit and install rules
+  <project-dir>    Initialize if required, then run eslint using ~/.sweepi
+  init    Create ~/.sweepi and install rules
 `);
 }
 

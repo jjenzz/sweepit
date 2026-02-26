@@ -3,7 +3,7 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-const TOOLCHAIN_DIR_NAME = '.sweepit';
+const TOOLCHAIN_DIR_NAME = '.sweepi';
 const TOOLCHAIN_PACKAGE_JSON_NAME = 'package.json';
 const TOOLCHAIN_CONFIG_NAME = 'eslint.config.mjs';
 const TOOLCHAIN_INSTALL_ARGUMENTS = [
@@ -17,16 +17,16 @@ const TOOLCHAIN_INSTALL_ARGUMENTS = [
 
 const TOOLCHAIN_PACKAGE_JSON_CONTENT = JSON.stringify(
   {
-    name: 'sweepit-toolchain',
+    name: 'sweepi-toolchain',
     private: true,
   },
   null,
   2,
 );
 
-const TOOLCHAIN_CONFIG_CONTENT = `import sweepit from 'eslint-plugin-sweepit';
+const TOOLCHAIN_CONFIG_CONTENT = `import sweepitPlugin from 'eslint-plugin-sweepit';
 
-export default [...sweepit.configs.core, ...sweepit.configs.react];
+export default [...sweepitPlugin.configs.core, ...sweepitPlugin.configs.react];
 `;
 
 interface InitializeToolchainOptions {
@@ -39,7 +39,7 @@ interface InitializeToolchainResult {
   installedDependencies: boolean;
 }
 
-interface RunSweepitOptions {
+interface RunSweepiOptions {
   homeDirectory?: string;
   runInstallCommand?: (command: string, args: string[], cwd: string) => Promise<void>;
   runLintCommand?: (command: string, args: string[], cwd: string) => Promise<number>;
@@ -80,9 +80,9 @@ async function initializeToolchain(
   };
 }
 
-async function runSweepit(
+async function runSweepi(
   projectDirectory: string,
-  options: RunSweepitOptions = {},
+  options: RunSweepiOptions = {},
 ): Promise<number> {
   const resolvedProjectDirectory = path.resolve(projectDirectory);
   const projectDirectoryStats = await fs.stat(resolvedProjectDirectory).catch(() => null);
@@ -150,7 +150,7 @@ async function runInstallCommandWithNpm(
         return;
       }
 
-      reject(new Error(`Failed to initialize Sweepit toolchain (exit code ${String(code)}).`));
+      reject(new Error(`Failed to initialize Sweepi toolchain (exit code ${String(code)}).`));
     });
   });
 }
@@ -177,5 +177,5 @@ async function runLintCommandWithExecutable(
   });
 }
 
-export { initializeToolchain, runSweepit };
-export type { InitializeToolchainOptions, InitializeToolchainResult, RunSweepitOptions };
+export { initializeToolchain, runSweepi };
+export type { InitializeToolchainOptions, InitializeToolchainResult, RunSweepiOptions };

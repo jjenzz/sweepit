@@ -1,6 +1,6 @@
-export { initializeToolchain, runSweepit } from './toolchain';
+export { initializeToolchain, runSweepi } from './toolchain';
 export type {
   InitializeToolchainOptions,
   InitializeToolchainResult,
-  RunSweepitOptions,
+  RunSweepiOptions,
 } from './toolchain';
