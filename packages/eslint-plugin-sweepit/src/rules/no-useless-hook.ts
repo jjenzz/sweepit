@@ -62,33 +62,37 @@ const CHILD_KEYS: Record<string, string[]> = {
   ObjectExpression: ['properties'],
 };
 
-function* traverse(node: Rule.Node | null | undefined): Generator<Rule.Node> {
-  if (!node || typeof node !== 'object') return;
-  const stack: Rule.Node[] = [node];
-  const seen = new WeakSet<object>();
-  while (stack.length > 0) {
-    const current = stack.pop()!;
-    if (seen.has(current as object)) continue;
-    seen.add(current as object);
-    yield current;
-    const keys = CHILD_KEYS[(current as { type?: string }).type ?? ''] ?? [];
-    const n = current as unknown as Record<string, unknown>;
-    for (const key of keys) {
-      const val = n[key];
-      if (val && typeof val === 'object') {
-        if (Array.isArray(val)) {
-          for (let i = val.length - 1; i >= 0; i--) {
-            const child = val[i];
-            if (child && typeof child === 'object' && 'type' in child) {
-              stack.push(child as Rule.Node);
-            }
-          }
-        } else if ('type' in (val as object)) {
-          stack.push(val as Rule.Node);
-        }
-      }
+function isTraversableNode(value: unknown): value is Rule.Node {
+  return (
+    Boolean(value) && typeof value === 'object' && 'type' in (value as Record<string, unknown>)
+  );
+}
+
+function getChildNodes(value: unknown): Rule.Node[] {
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is Rule.Node => isTraversableNode(entry));
+  }
+  return isTraversableNode(value) ? [value] : [];
+}
+
+function* traverseNode(node: Rule.Node, seen: WeakSet<object>): Generator<Rule.Node> {
+  if (seen.has(node as object)) return;
+  seen.add(node as object);
+  yield node;
+
+  const keys = CHILD_KEYS[(node as { type?: string }).type ?? ''] ?? [];
+  const typedNode = node as unknown as Record<string, unknown>;
+
+  for (const key of keys) {
+    for (const child of getChildNodes(typedNode[key])) {
+      yield* traverseNode(child, seen);
     }
   }
+}
+
+function* traverse(node: Rule.Node | null | undefined): Generator<Rule.Node> {
+  if (!node || typeof node !== 'object') return;
+  yield* traverseNode(node, new WeakSet<object>());
 }
 
 function callsAnyHook(body: Rule.Node | null | undefined): boolean {

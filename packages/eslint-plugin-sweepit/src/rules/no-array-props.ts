@@ -29,6 +29,21 @@ function isPropsTypeName(name: string | undefined): boolean {
   return Boolean(name?.endsWith('Props'));
 }
 
+function isArrayLikeTypeText(typeText: string): boolean {
+  return (
+    typeText.endsWith('[]') ||
+    typeText.startsWith('readonly ') ||
+    typeText.startsWith('Array<') ||
+    typeText.startsWith('ReadonlyArray<') ||
+    typeText.startsWith('[') ||
+    typeText.startsWith('readonly [')
+  );
+}
+
+function extendSeenAliases(seenAliases: Set<string>, typeName: string): Set<string> {
+  return new Set([...seenAliases, typeName]);
+}
+
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -64,17 +79,6 @@ const rule: Rule.RuleModule = {
     const checker = parserServices?.program?.getTypeChecker();
     const hasTypeInformation = Boolean(checker && parserServices?.esTreeNodeToTSNodeMap);
     const localTypeAliases = new Map<string, Rule.Node>();
-
-    function isArrayLikeTypeText(typeText: string): boolean {
-      return (
-        typeText.endsWith('[]') ||
-        typeText.startsWith('readonly ') ||
-        typeText.startsWith('Array<') ||
-        typeText.startsWith('ReadonlyArray<') ||
-        typeText.startsWith('[') ||
-        typeText.startsWith('readonly [')
-      );
-    }
 
     function isDisallowedArrayType(type: ts.Type | undefined): boolean {
       if (!type || !checker) return false;
@@ -114,9 +118,7 @@ const rule: Rule.RuleModule = {
         if (seenAliases.has(typeName)) return false;
         const aliasType = localTypeAliases.get(typeName);
         if (!aliasType) return false;
-        const nextSeenAliases = new Set(seenAliases);
-        nextSeenAliases.add(typeName);
-        return isArrayLikeTypeNode(aliasType, nextSeenAliases);
+        return isArrayLikeTypeNode(aliasType, extendSeenAliases(seenAliases, typeName));
       }
       return false;
     }
@@ -192,9 +194,7 @@ const rule: Rule.RuleModule = {
         if (!typeName || seenAliases.has(typeName)) return;
         const aliasType = localTypeAliases.get(typeName);
         if (!aliasType) return;
-        const nextSeenAliases = new Set(seenAliases);
-        nextSeenAliases.add(typeName);
-        visitPropsType(aliasType, propsTypeName, nextSeenAliases);
+        visitPropsType(aliasType, propsTypeName, extendSeenAliases(seenAliases, typeName));
       }
     }
 
@@ -204,7 +204,7 @@ const rule: Rule.RuleModule = {
           id?: { type?: string; name?: string };
           typeAnnotation?: Rule.Node;
         };
-        if (!declaration.id || declaration.id.type !== 'Identifier' || !declaration.id.name) return;
+        if (declaration.id?.type !== 'Identifier' || !declaration.id?.name) return;
         if (!declaration.typeAnnotation) return;
 
         localTypeAliases.set(declaration.id.name, declaration.typeAnnotation);
@@ -216,7 +216,7 @@ const rule: Rule.RuleModule = {
           id?: { type?: string; name?: string };
           body?: { body?: Rule.Node[] };
         };
-        if (!declaration.id || declaration.id.type !== 'Identifier' || !declaration.id.name) return;
+        if (declaration.id?.type !== 'Identifier' || !declaration.id?.name) return;
         if (!isPropsTypeName(declaration.id.name)) return;
 
         for (const member of declaration.body?.body ?? []) {

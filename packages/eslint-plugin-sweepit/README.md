@@ -13,12 +13,12 @@ npm install --save-dev eslint-plugin-sweepit eslint
 ```js
 import sweepit from 'eslint-plugin-sweepit';
 
-export default [...sweepit.configs.react];
+export default [...sweepit.configs.core, ...sweepit.configs.react];
 ```
 
 ## Type Information (Accuracy Boost)
 
-`configs.react` enables TypeScript project services by default:
+`configs.core` and `configs.react` enable TypeScript project services by default:
 
 ```js
 languageOptions: {
@@ -35,6 +35,21 @@ This improves accuracy for rules like:
 - `sweepit/no-object-props`
 - `sweepit/no-optional-props-without-defaults`
 - `@typescript-eslint/no-floating-promises`
+- `@typescript-eslint/switch-exhaustiveness-check`
+
+## What `configs.core` includes
+
+The exported core config enables:
+
+- `sonarjs.configs.recommended` from `eslint-plugin-sonarjs`
+- `functional/functional-parameters`
+- `functional/immutable-data`
+- `functional/no-let`
+- `functional/no-return-void`
+- `no-param-reassign` with `{ props: true }`
+- `prefer-const`
+- `@typescript-eslint/switch-exhaustiveness-check`
+- `complexity` with `{ max: 3, variant: 'modified' }`
 
 ## What `configs.react` includes
 
@@ -58,12 +73,13 @@ The exported React config is opinionated. It enables:
 
 ## Customize rule defaults
 
-Override any default rule from `sweepit.configs.react`.
+Override any default rule from `sweepit.configs.core` and `sweepit.configs.react`.
 
 ```js
 import sweepit from 'eslint-plugin-sweepit';
 
 export default [
+  ...sweepit.configs.core,
   ...sweepit.configs.react,
   {
     rules: {

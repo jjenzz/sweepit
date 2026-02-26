@@ -29,6 +29,18 @@ function isPropsTypeName(name: string | undefined): boolean {
   return Boolean(name?.endsWith('Props'));
 }
 
+function isCompositeType(type: string | undefined): boolean {
+  return type === 'TSUnionType' || type === 'TSIntersectionType';
+}
+
+function isWrapperType(type: string | undefined): boolean {
+  return type === 'TSParenthesizedType' || type === 'TSOptionalType' || type === 'TSTypeOperator';
+}
+
+function extendSeenAliases(seenAliases: Set<string>, typeName: string): Set<string> {
+  return new Set([...seenAliases, typeName]);
+}
+
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -112,6 +124,50 @@ const rule: Rule.RuleModule = {
       return false;
     }
 
+    function visitTypeEntries(
+      entries: Rule.Node[] | undefined,
+      propsTypeName: string,
+      seenAliases: Set<string>,
+    ): void {
+      for (const entry of entries ?? []) {
+        visitPropsType(entry, propsTypeName, seenAliases);
+      }
+    }
+
+    function visitReferencedAlias(
+      typeNameNode: Rule.Node | undefined,
+      propsTypeName: string,
+      seenAliases: Set<string>,
+    ): void {
+      const typeName = getTypeName(typeNameNode);
+      if (!typeName || seenAliases.has(typeName)) return;
+      const aliasType = localTypeAliases.get(typeName);
+      if (!aliasType) return;
+      visitPropsType(aliasType, propsTypeName, extendSeenAliases(seenAliases, typeName));
+    }
+
+    function reportDisallowedObjectMembers(
+      members: Rule.Node[] | undefined,
+      propsTypeName: string,
+    ): void {
+      for (const member of members ?? []) {
+        const property = member as {
+          type?: string;
+          key?: Rule.Node;
+          typeAnnotation?: Rule.Node;
+        };
+        if (property.type !== 'TSPropertySignature' || !property.typeAnnotation) continue;
+        const propName = getPropertyName(property.key);
+        if (!propName || propName === 'style') continue;
+        if (!memberHasObjectType(property.typeAnnotation)) continue;
+        context.report({
+          node: member,
+          messageId: 'noObjectProps',
+          data: { prop: propName, propsType: propsTypeName },
+        });
+      }
+    }
+
     function visitPropsType(
       typeNode: Rule.Node | undefined,
       propsTypeName: string,
@@ -127,50 +183,22 @@ const rule: Rule.RuleModule = {
       };
 
       if (typedNode.type === 'TSTypeLiteral') {
-        for (const member of typedNode.members ?? []) {
-          const property = member as {
-            type?: string;
-            key?: Rule.Node;
-            typeAnnotation?: Rule.Node;
-          };
-          if (property.type !== 'TSPropertySignature' || !property.typeAnnotation) continue;
-          const propName = getPropertyName(property.key);
-          if (!propName || propName === 'style') continue;
-          if (!memberHasObjectType(property.typeAnnotation)) continue;
-          context.report({
-            node: member,
-            messageId: 'noObjectProps',
-            data: { prop: propName, propsType: propsTypeName },
-          });
-        }
+        reportDisallowedObjectMembers(typedNode.members, propsTypeName);
         return;
       }
 
-      if (typedNode.type === 'TSUnionType' || typedNode.type === 'TSIntersectionType') {
-        for (const entry of typedNode.types ?? []) {
-          visitPropsType(entry, propsTypeName, seenAliases);
-        }
+      if (isCompositeType(typedNode.type)) {
+        visitTypeEntries(typedNode.types, propsTypeName, seenAliases);
         return;
       }
 
-      if (
-        typedNode.type === 'TSParenthesizedType' ||
-        typedNode.type === 'TSOptionalType' ||
-        typedNode.type === 'TSTypeOperator'
-      ) {
+      if (isWrapperType(typedNode.type)) {
         visitPropsType(typedNode.typeAnnotation, propsTypeName, seenAliases);
         return;
       }
 
-      if (typedNode.type === 'TSTypeReference') {
-        const typeName = getTypeName(typedNode.typeName);
-        if (!typeName || seenAliases.has(typeName)) return;
-        const aliasType = localTypeAliases.get(typeName);
-        if (!aliasType) return;
-        const nextSeenAliases = new Set(seenAliases);
-        nextSeenAliases.add(typeName);
-        visitPropsType(aliasType, propsTypeName, nextSeenAliases);
-      }
+      if (typedNode.type !== 'TSTypeReference') return;
+      visitReferencedAlias(typedNode.typeName, propsTypeName, seenAliases);
     }
 
     return {
@@ -179,7 +207,7 @@ const rule: Rule.RuleModule = {
           id?: { type?: string; name?: string };
           typeAnnotation?: Rule.Node;
         };
-        if (!declaration.id || declaration.id.type !== 'Identifier' || !declaration.id.name) return;
+        if (declaration.id?.type !== 'Identifier' || !declaration.id?.name) return;
         if (!declaration.typeAnnotation) return;
 
         localTypeAliases.set(declaration.id.name, declaration.typeAnnotation);
@@ -191,25 +219,9 @@ const rule: Rule.RuleModule = {
           id?: { type?: string; name?: string };
           body?: { body?: Rule.Node[] };
         };
-        if (!declaration.id || declaration.id.type !== 'Identifier' || !declaration.id.name) return;
+        if (declaration.id?.type !== 'Identifier' || !declaration.id?.name) return;
         if (!isPropsTypeName(declaration.id.name)) return;
-
-        for (const member of declaration.body?.body ?? []) {
-          const property = member as {
-            type?: string;
-            key?: Rule.Node;
-            typeAnnotation?: Rule.Node;
-          };
-          if (property.type !== 'TSPropertySignature' || !property.typeAnnotation) continue;
-          const propName = getPropertyName(property.key);
-          if (!propName || propName === 'style') continue;
-          if (!memberHasObjectType(property.typeAnnotation)) continue;
-          context.report({
-            node: member,
-            messageId: 'noObjectProps',
-            data: { prop: propName, propsType: declaration.id.name },
-          });
-        }
+        reportDisallowedObjectMembers(declaration.body?.body, declaration.id.name);
       },
     };
   },

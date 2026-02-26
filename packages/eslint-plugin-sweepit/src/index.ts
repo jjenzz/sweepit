@@ -1,4 +1,5 @@
 import type { ESLint } from 'eslint';
+import { createCoreConfig } from './configs/core';
 import { createReactConfig } from './configs/react';
 import noTitleCaseProps from './rules/no-title-case-props';
 import noCustomKebabCaseProps from './rules/no-custom-kebab-case-props';
@@ -56,6 +57,7 @@ const plugin: ESLint.Plugin = {
 };
 
 plugin.configs = {
+  core: createCoreConfig(plugin),
   react: createReactConfig(plugin),
 };
 
