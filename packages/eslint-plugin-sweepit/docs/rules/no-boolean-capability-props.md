@@ -56,6 +56,12 @@ interface EditorProps {
 ## How To Fix
 
 1. Add a matching handler to each boolean state prop (for example `open` + `onOpenChange`, where handler names start with `on{PropName}`).
-2. If boolean flags are only toggling variants, split them into explicit composed variants.
-3. Keep state transitions explicit through events rather than hidden conditional branches.
-4. AI agents: if a boolean has no valid control handler, add one or extract separate composed variants instead of adding more flags.
+2. If a boolean only toggles presentation variants, prefer explicit compound composition first (for example separate parts or composed branches in JSX).
+3. If composition is not practical, replace the boolean with an explicit variant prop (for example `variant?: "loud" | "subtle"`).
+4. Keep state transitions explicit through events rather than hidden conditional branches.
+
+## Fix Safety (Required)
+
+- Do not remove existing functionality to satisfy this rule.
+- Preserve the same user-facing behaviors when refactoring boolean props.
+- If behavior parity cannot be maintained with composition or a variant prop, stop and request human approval before changing the API.

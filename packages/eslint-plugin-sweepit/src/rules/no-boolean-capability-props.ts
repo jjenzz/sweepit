@@ -142,7 +142,7 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       noBooleanCapabilityProp:
-        "Boolean prop '{{prop}}' has no control handler starting with '{{handlerPrefix}}'. Prefer explicit handlers or compound composition.",
+        "Boolean prop '{{prop}}' has no control handler starting with '{{handlerPrefix}}'. Prefer compound composition, or an explicit variant prop.",
     },
     schema: [
       {
