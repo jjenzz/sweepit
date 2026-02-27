@@ -126,7 +126,7 @@ async function initializeToolchain(
   const runSkillInstallCommand = options.runSkillInstallCommand ?? runInstallCommandWithNpm;
   await runSkillInstallCommand(
     'npx',
-    ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+    ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--global', '--yes'],
     toolchainDirectory,
   );
   onStatus?.('Installed Sweepi LLM skill');
