@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 
 const DEFAULT_ALLOWED_DEPTH = 1;
+const DEFAULT_IGNORE_PROPS_SPREAD = true;
 
 interface PropBinding {
   propName: string;
@@ -10,6 +11,7 @@ interface PropBinding {
 
 interface RuleOptions {
   allowedDepth?: number;
+  ignorePropsSpread?: boolean;
 }
 
 interface ParentRef {
@@ -123,13 +125,17 @@ function getStaticPropKey(property: Rule.Node): string | null {
   return null;
 }
 
-function getPropBindings(param: Rule.Node | null | undefined): PropBinding[] {
+function getPropBindings(
+  param: Rule.Node | null | undefined,
+  ignorePropsSpread: boolean,
+): PropBinding[] {
   if (!param || param.type !== 'ObjectPattern') return [];
 
   const objectPattern = param as unknown as { properties?: Rule.Node[] };
   const bindings: PropBinding[] = [];
   for (const property of objectPattern.properties ?? []) {
     if (property.type === 'RestElement') {
+      if (ignorePropsSpread) continue;
       const rest = property as unknown as { argument?: Rule.Node };
       if (rest.argument?.type !== 'Identifier') continue;
       const identifier = rest.argument as unknown as { name: string };
@@ -318,10 +324,11 @@ function analyzeComponent(
   name: string | null | undefined,
   params: Rule.Node[] | undefined,
   body: Rule.Node | null | undefined,
+  ignorePropsSpread: boolean,
 ): ComponentPassThroughRecord | null {
   if (!name || !isPascalCase(name)) return null;
   const firstParam = (params ?? [])[0];
-  const bindings = getPropBindings(firstParam);
+  const bindings = getPropBindings(firstParam, ignorePropsSpread);
   if (bindings.length === 0) return null;
 
   const bindingMap = new Map<string, PropBinding>();
@@ -423,9 +430,8 @@ const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Disallow pass-through-only props in component owners (accepting props only to forward them)',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-pass-through-props.md',
+      description: 'Disallow prop drilling in component owners',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-prop-drilling.md',
     },
     messages: {
       noPassThroughProp:
@@ -439,6 +445,9 @@ const rule: Rule.RuleModule = {
             type: 'integer',
             minimum: 1,
           },
+          ignorePropsSpread: {
+            type: 'boolean',
+          },
         },
         additionalProperties: false,
       },
@@ -451,6 +460,10 @@ const rule: Rule.RuleModule = {
       Number.isInteger(allowedDepthRaw) && (allowedDepthRaw ?? 0) >= 1
         ? (allowedDepthRaw as number)
         : DEFAULT_ALLOWED_DEPTH;
+    const ignorePropsSpread =
+      typeof rawOptions.ignorePropsSpread === 'boolean'
+        ? rawOptions.ignorePropsSpread
+        : DEFAULT_IGNORE_PROPS_SPREAD;
 
     const components = new Map<string, ComponentPassThroughRecord>();
 
@@ -461,7 +474,7 @@ const rule: Rule.RuleModule = {
           params?: Rule.Node[];
           body?: Rule.Node;
         };
-        const component = analyzeComponent(node, fn.id?.name, fn.params, fn.body);
+        const component = analyzeComponent(node, fn.id?.name, fn.params, fn.body, ignorePropsSpread);
         if (!component) return;
         components.set(component.name, component);
       },
@@ -481,7 +494,13 @@ const rule: Rule.RuleModule = {
           params?: Rule.Node[];
           body?: Rule.Node;
         };
-        const record = analyzeComponent(init, id.name, component.params, component.body);
+        const record = analyzeComponent(
+          init,
+          id.name,
+          component.params,
+          component.body,
+          ignorePropsSpread,
+        );
         if (!record) return;
         components.set(record.name, record);
       },

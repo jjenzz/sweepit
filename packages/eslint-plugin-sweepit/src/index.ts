@@ -21,7 +21,7 @@ import noBooleanCapabilityProps from './rules/no-boolean-capability-props';
 import maxCustomProps from './rules/max-custom-props';
 import jsxBemCompoundNaming from './rules/jsx-bem-compound-naming';
 import jsxCompoundPartExportNaming from './rules/jsx-compound-part-export-naming';
-import noPassThroughProps from './rules/no-pass-through-props';
+import noPropDrilling from './rules/no-prop-drilling';
 import jsxFlatOwnerTree from './rules/jsx-flat-owner-tree';
 
 const plugin: ESLint.Plugin = {
@@ -50,7 +50,7 @@ const plugin: ESLint.Plugin = {
     'max-custom-props': maxCustomProps,
     'jsx-bem-compound-naming': jsxBemCompoundNaming,
     'jsx-compound-part-export-naming': jsxCompoundPartExportNaming,
-    'no-pass-through-props': noPassThroughProps,
+    'no-prop-drilling': noPropDrilling,
     'jsx-flat-owner-tree': jsxFlatOwnerTree,
   },
   configs: {},

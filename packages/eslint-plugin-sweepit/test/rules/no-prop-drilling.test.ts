@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 import { RuleTester } from 'eslint';
-import rule from '../../src/rules/no-pass-through-props';
+import rule from '../../src/rules/no-prop-drilling';
 import tsParser from '@typescript-eslint/parser';
 
 RuleTester.describe = describe;
@@ -17,8 +17,8 @@ const ruleTester = new RuleTester({
   },
 });
 
-describe('no-pass-through-props', () => {
-  ruleTester.run('no-pass-through-props', rule, {
+describe('no-prop-drilling', () => {
+  ruleTester.run('no-prop-drilling', rule, {
     valid: [
       `
         function Card({ title }: { title: string }) {
@@ -44,12 +44,24 @@ describe('no-pass-through-props', () => {
           />
         );
       `,
-      `
+      {
+        code: `
         const Leaf = ({ title }: { title: string }) => <h2>{title}</h2>;
 
         const Card = ({ title }: { title: string }) => {
           return <Leaf title={title} />;
         };
+      `,
+        options: [{ allowedDepth: 2 }],
+      },
+      `
+        const Native = ({ ...props }: InputProps) => <input {...props} />;
+
+        const LevelOne = ({ ...props }: InputProps) => <Native {...props} />;
+
+        const LevelTwo = ({ ...props }: InputProps) => <LevelOne {...props} />;
+
+        const LevelThree = ({ ...props }: InputProps) => <LevelTwo {...props} />;
       `,
     ],
     invalid: [
@@ -63,6 +75,7 @@ describe('no-pass-through-props', () => {
             return <BaseInput {...props} />;
           };
         `,
+        options: [{ allowedDepth: 1, ignorePropsSpread: false }],
         errors: [
           {
             messageId: 'noPassThroughProp',
@@ -88,6 +101,7 @@ describe('no-pass-through-props', () => {
             return <Middle title={title} />;
           };
         `,
+        options: [{ allowedDepth: 1 }],
         errors: [
           {
             messageId: 'noPassThroughProp',
@@ -111,7 +125,7 @@ describe('no-pass-through-props', () => {
 
           const LevelThree = ({ ...props }: InputProps) => <LevelTwo {...props} />;
         `,
-        options: [{ allowedDepth: 2 }],
+        options: [{ allowedDepth: 2, ignorePropsSpread: false }],
         errors: [
           {
             messageId: 'noPassThroughProp',
