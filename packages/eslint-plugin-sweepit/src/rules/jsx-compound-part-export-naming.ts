@@ -166,11 +166,6 @@ const rule: Rule.RuleModule = {
         if (!stem) return;
         if (stem.toLowerCase() === 'index') return;
 
-        const componentExports = exports.filter(
-          (entry) => localComponents.has(entry.localName) && isPascalCase(entry.localName),
-        );
-        if (componentExports.length < 2) return;
-
         const normalizedStem = normalizeForComparison(stem);
         const blockCandidates = [
           ...new Set([...localComponents, ...objectExports.map((e) => e.name)]),
@@ -179,6 +174,19 @@ const rule: Rule.RuleModule = {
 
         const block = blockCandidates[0];
         if (!block) return;
+        for (const objectExport of objectExports) {
+          if (objectExport.name !== block) continue;
+          context.report({
+            node: objectExport.node,
+            messageId: 'noRuntimeObjectExport',
+            data: { name: objectExport.name },
+          });
+        }
+
+        const componentExports = exports.filter(
+          (entry) => localComponents.has(entry.localName) && isPascalCase(entry.localName),
+        );
+        if (componentExports.length < 2) return;
         const blockExports = componentExports.filter((entry) => entry.localName === block);
         const partExports = componentExports.filter(
           (entry) => entry.localName !== block && entry.localName.startsWith(block),
@@ -229,16 +237,6 @@ const rule: Rule.RuleModule = {
               });
             }
           }
-        }
-
-        if (partExports.length === 0) return;
-        for (const objectExport of objectExports) {
-          if (objectExport.name !== block) continue;
-          context.report({
-            node: objectExport.node,
-            messageId: 'noRuntimeObjectExport',
-            data: { name: objectExport.name },
-          });
         }
       },
     };

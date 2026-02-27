@@ -62,6 +62,22 @@ describe('jsx-compound-part-export-naming', () => {
           export { ButtonGroup, ButtonGroupItem } from './button-group';
         `,
       },
+      {
+        filename: '/tmp/components.tsx',
+        code: `
+          const TodoListRoot = () => null;
+          const TodoListTitle = () => null;
+          const TodoListItems = () => null;
+          const TodoListItem = () => null;
+
+          export const TodoList = {
+            Root: TodoListRoot,
+            Title: TodoListTitle,
+            Items: TodoListItems,
+            Item: TodoListItem,
+          };
+        `,
+      },
     ],
     invalid: [
       {
@@ -122,6 +138,30 @@ describe('jsx-compound-part-export-naming', () => {
             messageId: 'requireRootAlias',
             data: {
               block: 'ButtonGroup',
+            },
+          },
+        ],
+      },
+      {
+        filename: '/tmp/todo-list.tsx',
+        code: `
+          const TodoListRoot = () => null;
+          const TodoListTitle = () => null;
+          const TodoListItems = () => null;
+          const TodoListItem = () => null;
+
+          export const TodoList = {
+            Root: TodoListRoot,
+            Title: TodoListTitle,
+            Items: TodoListItems,
+            Item: TodoListItem,
+          };
+        `,
+        errors: [
+          {
+            messageId: 'noRuntimeObjectExport',
+            data: {
+              name: 'TodoList',
             },
           },
         ],
