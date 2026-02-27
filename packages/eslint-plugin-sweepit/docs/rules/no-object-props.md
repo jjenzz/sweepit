@@ -36,12 +36,12 @@ This rule has no options.
 
 ```ts
 interface UserCardProps {
-  user: { id: string; email: string }
+  user: { id: string; email: string };
 }
 
 type CardProps = {
-  config: { dense: boolean }
-}
+  config: { dense: boolean };
+};
 ```
 
 ### Correct
@@ -56,7 +56,7 @@ interface CardProps {
 
 // not props
 interface UserOptions {
-  user: { id: string; email: string }
+  user: { id: string; email: string };
 }
 ```
 
@@ -70,13 +70,13 @@ interface UserOptions {
 ```ts
 // before
 interface UserRowProps {
-  user: User
+  user: User;
 }
 
 // after
 interface UserRowProps {
-  name: string
-  email: string
+  name: string;
+  email: string;
 }
 ```
 
@@ -84,6 +84,6 @@ If object-shaped data truly must flow to multiple compound parts, prefer context
 
 ```ts
 interface UserCardRootProps {
-  id: string
+  id: string;
 }
 ```

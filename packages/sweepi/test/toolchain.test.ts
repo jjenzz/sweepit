@@ -34,10 +34,16 @@ describe('initializeToolchain', () => {
     expect(await readText(configPath)).toContain(
       "import sweepitPlugin from 'eslint-plugin-sweepit';",
     );
+    expect(await readText(configPath)).toContain("const files = ['**/*.ts', '**/*.tsx'];");
+    expect(await readText(configPath)).toContain("'**/*.test.*'");
+    expect(await readText(configPath)).toContain("'**/*.spec.*'");
+    expect(await readText(configPath)).toContain('const withScope = (config) => ({');
     expect(installCalls).toHaveLength(1);
     expect(installCalls[0]?.command).toBe('npm');
     expect(installCalls[0]?.cwd).toBe(toolchainDirectory);
-    expect(installCalls[0]?.args).toContain('eslint-plugin-sweepit@0.0.5');
+    expect(installCalls[0]?.args.some((arg) => arg.startsWith('eslint-plugin-sweepit@'))).toBe(
+      true,
+    );
     expect(installCalls[0]?.args).toContain('--no-package-lock');
   });
 
@@ -109,7 +115,7 @@ describe('initializeToolchain', () => {
           'utf8',
         );
         expect(command).toBe('npm');
-        expect(args).toContain('eslint-plugin-sweepit@0.0.5');
+        expect(args.some((arg) => arg.startsWith('eslint-plugin-sweepit@'))).toBe(true);
       },
     });
 
@@ -120,7 +126,7 @@ describe('initializeToolchain', () => {
 });
 
 describe('runSweepi', () => {
-  it('runs eslint against the target project directory when toolchain is initialized', async () => {
+  it('runs eslint against changed TypeScript files when toolchain is initialized', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
     const homeDirectory = path.join(tempDirectory, 'home');
     const projectDirectory = path.join(tempDirectory, 'project');
@@ -150,6 +156,12 @@ describe('runSweepi', () => {
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
+      listChangedFiles: async () => [
+        'src/feature.ts',
+        'src/component.tsx',
+        'src/component.test.tsx',
+        'README.md',
+      ],
       runLintCommand: async (command, args, cwd) => {
         lintCalls.push({ command, args, cwd });
         return 0;
@@ -164,9 +176,59 @@ describe('runSweepi', () => {
     expect(lintCalls[0]?.args).toEqual([
       '--config',
       path.join(toolchainDirectory, 'eslint.config.mjs'),
-      projectDirectory,
+      '--no-error-on-unmatched-pattern',
+      path.join(projectDirectory, 'src/feature.ts'),
+      path.join(projectDirectory, 'src/component.tsx'),
+      path.join(projectDirectory, 'src/component.test.tsx'),
+      path.join(projectDirectory, 'README.md'),
     ]);
     expect(lintCalls[0]?.cwd).toBe(projectDirectory);
+  });
+
+  it('runs eslint against all TypeScript files when all mode is enabled', async () => {
+    const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
+    const homeDirectory = path.join(tempDirectory, 'home');
+    const projectDirectory = path.join(tempDirectory, 'project');
+    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
+    const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
+    const pluginPackageDirectoryPath = path.join(
+      toolchainDirectory,
+      'node_modules',
+      'eslint-plugin-sweepit',
+    );
+    await fs.mkdir(projectDirectory, { recursive: true });
+    await fs.mkdir(eslintBinaryPath, { recursive: true });
+    await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
+    await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
+    await fs.writeFile(
+      path.join(pluginPackageDirectoryPath, 'package.json'),
+      '{"name":"eslint-plugin-sweepit"}',
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      'export default [];',
+      'utf8',
+    );
+
+    const lintCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
+
+    const exitCode = await runSweepi(projectDirectory, {
+      homeDirectory,
+      all: true,
+      runLintCommand: async (command, args, cwd) => {
+        lintCalls.push({ command, args, cwd });
+        return 0;
+      },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(lintCalls).toHaveLength(1);
+    expect(lintCalls[0]?.args).toEqual([
+      '--config',
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      projectDirectory,
+    ]);
   });
 
   it('returns the eslint process exit code', async () => {
@@ -189,14 +251,59 @@ describe('runSweepi', () => {
       '{"name":"eslint-plugin-sweepit"}',
       'utf8',
     );
-    await fs.writeFile(path.join(toolchainDirectory, 'eslint.config.mjs'), 'export default [];', 'utf8');
+    await fs.writeFile(
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      'export default [];',
+      'utf8',
+    );
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
+      listChangedFiles: async () => ['src/feature.ts'],
       runLintCommand: async () => 2,
     });
 
     expect(exitCode).toBe(2);
+  });
+
+  it('returns 0 when there are no changed files', async () => {
+    const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
+    const homeDirectory = path.join(tempDirectory, 'home');
+    const projectDirectory = path.join(tempDirectory, 'project');
+    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
+    const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
+    const pluginPackageDirectoryPath = path.join(
+      toolchainDirectory,
+      'node_modules',
+      'eslint-plugin-sweepit',
+    );
+    await fs.mkdir(projectDirectory, { recursive: true });
+    await fs.mkdir(eslintBinaryPath, { recursive: true });
+    await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
+    await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
+    await fs.writeFile(
+      path.join(pluginPackageDirectoryPath, 'package.json'),
+      '{"name":"eslint-plugin-sweepit"}',
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      'export default [];',
+      'utf8',
+    );
+
+    let lintAttempted = false;
+    const exitCode = await runSweepi(projectDirectory, {
+      homeDirectory,
+      listChangedFiles: async () => [],
+      runLintCommand: async () => {
+        lintAttempted = true;
+        return 1;
+      },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(lintAttempted).toBe(false);
   });
 
   it('throws when the provided project directory does not exist', async () => {

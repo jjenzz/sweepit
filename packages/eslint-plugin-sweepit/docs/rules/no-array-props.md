@@ -33,29 +33,29 @@ This rule has no options.
 
 ```ts
 interface ListProps {
-  items: string[]
+  items: string[];
 }
 
 type MenuProps = {
-  entries: Array<string>
-}
+  entries: Array<string>;
+};
 
 type TagListProps = {
-  tags: { label: string }[]
-}
+  tags: { label: string }[];
+};
 ```
 
 ### Correct
 
 ```ts
 interface ListProps {
-  total: number
-  label: string
+  total: number;
+  label: string;
 }
 
 // not props
 interface MenuOptions {
-  entries: string[]
+  entries: string[];
 }
 ```
 
@@ -69,7 +69,7 @@ interface MenuOptions {
 ```ts
 // before
 interface TagListProps {
-  tags: string[]
+  tags: string[];
 }
 
 // after

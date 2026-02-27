@@ -1,7 +1,7 @@
 {
   "private": true,
   "license": "MIT",
-  "repository": "jjenzz/sweepit",
+  "repository": "jjenzz/sweepi",
   "author": "Jenna Smith <175330+jjenzz@users.noreply.github.com>",
   "scripts": {
     "build": "pnpm --filter=\"eslint-plugin-sweepit\" build",
@@ -17,8 +17,7 @@
   },
   "prettier": {
     "singleQuote": true,
-    "printWidth": 100,
-    "tabWidth": 2
+    "printWidth": 100
   },
   "engines": {
     "pnpm": ">= 9",
