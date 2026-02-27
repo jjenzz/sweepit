@@ -57,8 +57,15 @@ interface EditorProps {
 
 1. Add a matching handler to each boolean state prop (for example `open` + `onOpenChange`, where handler names start with `on{PropName}`).
 2. If a boolean only toggles presentation variants, prefer explicit compound composition first (for example separate parts or composed branches in JSX).
-3. If composition is not practical, replace the boolean with an explicit variant prop (for example `variant?: "loud" | "subtle"`).
+3. If composition is not practical, replace the boolean with an explicit prop (see [### Naming Guardrail](#user-content-naming-guardrail)).
 4. Keep state transitions explicit through events rather than hidden conditional branches.
+
+### Naming Guardrail
+
+- When replacing a forbidden boolean, preserve domain intent in the new prop name.
+- Use semantic names for meaning/state (for example `status`, `priority`, `severity`).
+- Use style-coupled names (for example `variant`, `appearance`, `color`) only for visual design-system primitives.
+- If both are lint-compliant, prefer semantic state naming over visual naming.
 
 ## Fix Safety (Required)
 
