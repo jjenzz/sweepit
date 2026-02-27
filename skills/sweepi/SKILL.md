@@ -5,6 +5,8 @@ description: Runs Sweepi and resolves lint violations using Sweepit rule docs. T
 
 # Sweepi Skill
 
+The local `AGENTS.md` in this directory is authoritative for lint-fix safety workflow and reporting. If `SKILL.md` and `AGENTS.md` differ, follow `AGENTS.md`.
+
 ## When to run
 
 Run Sweepi in either case:
@@ -19,10 +21,11 @@ Run Sweepi in either case:
    - First try global CLI: `sweepi .`
    - If `sweepi` is not found, fallback to: `npx sweepi .`
 2. Parse all reported issues.
-3. For each rule violation, open the rule docs in:
+3. Follow the hard-gate pre-edit process in local `AGENTS.md`.
+4. For each rule violation, open the rule docs in:
    - `https://github.com/jjenzz/sweepi/tree/main/packages/eslint-plugin-sweepit/docs/rules`
-4. Apply fixes that match the documented intent, not only a minimal syntax pass.
-5. Re-run `sweepi` until issues are resolved (or document blockers if resolution is impossible).
+5. Apply fixes that match the documented intent, not only a minimal syntax pass.
+6. Re-run `sweepi` until issues are resolved (or document blockers if resolution is impossible).
 
 ## Resolution guidance
 
@@ -38,5 +41,5 @@ After running and fixing, report:
 
 1. The command you ran.
 2. Which rules were triggered.
-3. What you changed to satisfy each rule.
+3. Rule analysis and fix mapping required by `AGENTS.md`.
 4. The final Sweepi result (clean or remaining blockers).
