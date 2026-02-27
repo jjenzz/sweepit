@@ -45,7 +45,6 @@ describe('plugin:sweepit/react', () => {
     expect(reactConfig.rules?.['react/jsx-no-useless-fragment']).toBe('error');
     expect(reactConfig.rules?.['react/jsx-pascal-case']).toBe('error');
     expect(reactConfig.rules?.['react/no-unstable-nested-components']).toBe('error');
-    expect(reactConfig.rules?.['@typescript-eslint/no-floating-promises']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-title-case-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-custom-kebab-case-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-set-prefix-utils']).toBe('error');
