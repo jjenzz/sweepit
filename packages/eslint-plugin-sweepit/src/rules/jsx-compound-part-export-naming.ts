@@ -185,16 +185,24 @@ const rule: Rule.RuleModule = {
           (entry) => entry.localName !== block && entry.localName.startsWith(block),
         );
 
-        for (const partExport of partExports) {
-          const expectedPartAlias = partExport.localName.slice(block.length);
+        const partNames = [...new Set(partExports.map((entry) => entry.localName))];
+        for (const partName of partNames) {
+          const expectedPartAlias = partName.slice(block.length);
           if (expectedPartAlias.length === 0) continue;
-          if (partExport.exportedName === expectedPartAlias) continue;
 
+          const partEntries = partExports.filter((entry) => entry.localName === partName);
+          const hasPartAlias = partEntries.some(
+            (entry) => entry.exportedName === expectedPartAlias,
+          );
+          if (hasPartAlias) continue;
+
+          const firstPartEntry = partEntries[0];
+          if (!firstPartEntry) continue;
           context.report({
-            node: partExport.node,
+            node: firstPartEntry.node,
             messageId: 'requirePartAlias',
             data: {
-              local: partExport.localName,
+              local: partName,
               part: expectedPartAlias,
               block,
             },

@@ -40,6 +40,15 @@ describe('jsx-compound-part-export-naming', () => {
         `,
       },
       {
+        filename: '/tmp/button-group.tsx',
+        code: `
+          const ButtonGroup = () => null;
+          const ButtonGroupItem = () => null;
+          export { ButtonGroup as Root, ButtonGroupItem };
+          export { ButtonGroupItem as Item };
+        `,
+      },
+      {
         filename: '/tmp/index.tsx',
         code: `
           const Dialog = () => null;
