@@ -1,3 +1,20 @@
+# v0.0.11 (Fri Feb 27 2026)
+
+#### 🚀 Enhancement
+
+- Disable Sonar readonly props rule in core config [#19](https://github.com/jjenzz/sweepi/pull/19) ([@jjenzz](https://github.com/jjenzz))
+- Strengthen Sweepi lint-fix safety workflow [#18](https://github.com/jjenzz/sweepi/pull/18) ([@jjenzz](https://github.com/jjenzz))
+
+#### 📝 Documentation
+
+- Clarify README quick start lint workflows [#20](https://github.com/jjenzz/sweepi/pull/20) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.10 (Fri Feb 27 2026)
 
 #### 🚀 Enhancement
