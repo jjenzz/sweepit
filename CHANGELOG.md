@@ -1,3 +1,15 @@
+# v0.0.16 (Fri Feb 27 2026)
+
+#### 🚀 Enhancement
+
+- Add prop naming guardrail to no-boolean-capability-props [#32](https://github.com/jjenzz/sweepi/pull/32) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.15 (Fri Feb 27 2026)
 
 #### 📝 Documentation
