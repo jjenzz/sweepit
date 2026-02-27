@@ -3,16 +3,15 @@
 import { initializeToolchain, runSweepi } from './toolchain';
 
 async function run(): Promise<void> {
-  const command = process.argv[2];
+  const [firstArgument, ...restArguments] = process.argv.slice(2);
 
-  if (command === undefined || command === '--help' || command === '-h') {
+  if (firstArgument === undefined || firstArgument === '--help' || firstArgument === '-h') {
     printHelp();
     return;
   }
 
-  if (command === 'init') {
-    const initArguments = process.argv.slice(3);
-    const forceReset = parseForceResetOption(initArguments);
+  if (firstArgument === 'init') {
+    const forceReset = parseForceResetOption(restArguments);
     const initialization = await initializeToolchain({
       onStatus: logStatus,
       forceReset,
@@ -31,23 +30,24 @@ async function run(): Promise<void> {
     return;
   }
 
-  if (command.startsWith('-')) {
-    throw new Error(`Unknown flag "${command}". Try "sweepi --help".`);
-  }
+  const runArguments = [firstArgument, ...restArguments];
+  const parsedRunOptions = parseRunOptions(runArguments);
 
-  const lintExitCode = await runSweepi(command, {
+  const lintExitCode = await runSweepi(parsedRunOptions.projectDirectory, {
     onStatus: logStatus,
+    all: parsedRunOptions.all,
   });
   process.exitCode = lintExitCode;
 }
 
 function printHelp(): void {
   process.stdout.write(`Usage:
-  sweepi <project-dir>
+  sweepi [project-dir] [--all]
   sweepi init
 
 Commands:
-  <project-dir>    Run eslint using ~/.sweepi (run "sweepi init" first)
+  [project-dir]    Run eslint on changed ts/tsx files (default: current directory)
+  --all            Run eslint on all ts/tsx files
   init [--force, -f]    Create ~/.sweepi and install rules
 
 Tip:
@@ -72,6 +72,38 @@ function parseForceResetOption(argumentsList: string[]): boolean {
   }
 
   return forceReset;
+}
+
+interface ParsedRunOptions {
+  projectDirectory: string;
+  all: boolean;
+}
+
+function parseRunOptions(argumentsList: string[]): ParsedRunOptions {
+  let projectDirectory = '.';
+  let all = false;
+
+  for (const argument of argumentsList) {
+    if (argument === '--all') {
+      all = true;
+      continue;
+    }
+
+    if (argument.startsWith('-')) {
+      throw new Error(`Unknown flag "${argument}". Try "sweepi --help".`);
+    }
+
+    if (projectDirectory !== '.') {
+      throw new Error(`Unexpected argument "${argument}". Try "sweepi --help".`);
+    }
+
+    projectDirectory = argument;
+  }
+
+  return {
+    projectDirectory,
+    all,
+  };
 }
 
 try {
