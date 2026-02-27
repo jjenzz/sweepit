@@ -1,3 +1,15 @@
+# v0.0.6 (Fri Feb 27 2026)
+
+#### 🚀 Enhancement
+
+- improved messaging and error handling [#8](https://github.com/jjenzz/sweepit/pull/8) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.5 (Thu Feb 26 2026)
 
 #### 🚀 Enhancement
