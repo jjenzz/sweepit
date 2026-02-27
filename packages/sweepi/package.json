@@ -1,6 +1,6 @@
 {
   "name": "sweepi",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Run Sweepit lint rules without modifying project dependencies.",
   "license": "MIT",
   "type": "module",
