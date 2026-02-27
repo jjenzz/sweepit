@@ -18,6 +18,7 @@ Object props often couple components to data models and business-layer shapes.
   - Primitive member types.
   - Function member types.
   - `style` object members (for style contracts).
+  - Object members matching configured `ignore` patterns.
   - Type definitions not ending in `Props`.
 
 ### Type Information
@@ -28,7 +29,13 @@ When type information is enabled, detection is more accurate for alias-based mem
 
 ## Options
 
-This rule has no options.
+```json
+{
+  "ignore": ["ref", "on*"]
+}
+```
+
+- `ignore` (`string[]`, optional): glob patterns of prop names to skip.
 
 ## Examples
 
@@ -52,6 +59,11 @@ interface CardProps {
   elevation: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+// ignored via config
+interface InputProps {
+  ref: { current: HTMLInputElement | null };
 }
 
 // not props

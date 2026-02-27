@@ -58,7 +58,12 @@ describe('plugin:sweepit/react', () => {
     expect(reactConfig.rules?.['sweepit/no-render-helper-functions']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-element-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-componenttype-props']).toBe('error');
-    expect(reactConfig.rules?.['sweepit/no-object-props']).toBe('error');
+    expect(reactConfig.rules?.['sweepit/no-object-props']).toEqual([
+      'error',
+      {
+        ignore: ['ref'],
+      },
+    ]);
     expect(reactConfig.rules?.['sweepit/no-array-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-prefixed-prop-bundles']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-optional-props-without-defaults']).toEqual([

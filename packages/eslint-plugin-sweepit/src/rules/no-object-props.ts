@@ -1,6 +1,10 @@
 import type { Rule } from 'eslint';
 import ts from 'typescript';
 
+interface RuleOptions {
+  ignore?: string[];
+}
+
 function getTypeName(node: Rule.Node | undefined): string | null {
   if (!node) return null;
   const typedNode = node as {
@@ -37,6 +41,15 @@ function isWrapperType(type: string | undefined): boolean {
   return type === 'TSParenthesizedType' || type === 'TSOptionalType' || type === 'TSTypeOperator';
 }
 
+function globToRegex(globPattern: string): RegExp {
+  const escaped = globPattern.replace(/[|\\{}()[\]^$+?.]/g, '\\$&');
+  return new RegExp(`^${escaped.replace(/\*/g, '.*')}$`);
+}
+
+function createIgnoredPropMatcher(ignorePatterns: string[]): (propName: string) => boolean {
+  const regexes = ignorePatterns.map(globToRegex);
+  return (propName: string) => regexes.some((regex) => regex.test(propName));
+}
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -49,9 +62,22 @@ const rule: Rule.RuleModule = {
       noObjectProps:
         "Object type for '{{prop}}' in '{{propsType}}'. Prefer primitive props and compound composition.",
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          ignore: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
   },
   create(context) {
+    const options = (context.options[0] as RuleOptions | undefined) ?? {};
+    const isIgnoredPropName = createIgnoredPropMatcher(options.ignore ?? []);
     const parserServices =
       (
         context.sourceCode as {
@@ -166,7 +192,7 @@ const rule: Rule.RuleModule = {
         };
         if (property.type !== 'TSPropertySignature' || !property.typeAnnotation) continue;
         const propName = getPropertyName(property.key);
-        if (!propName || propName === 'style') continue;
+        if (!propName || propName === 'style' || isIgnoredPropName(propName)) continue;
         if (!memberHasObjectType(property.typeAnnotation)) continue;
         context.report({
           node: member,

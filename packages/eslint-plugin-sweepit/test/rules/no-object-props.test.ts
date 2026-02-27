@@ -31,6 +31,10 @@ describe('no-object-props', () => {
       'interface ButtonProps { style: { color: string } }',
       'type ButtonProps = { onClick: () => void; disabled: boolean }',
       'interface UserOptions { user: { id: string } }',
+      {
+        code: 'interface InputProps { ref: { current: HTMLInputElement | null } }',
+        options: [{ ignore: ['ref'] }],
+      },
     ],
     invalid: [
       {
@@ -57,6 +61,15 @@ describe('no-object-props', () => {
           {
             messageId: 'noObjectProps',
             data: { prop: 'config', propsType: 'CardProps' },
+          },
+        ],
+      },
+      {
+        code: 'interface InputProps { ref: { current: HTMLInputElement | null } }',
+        errors: [
+          {
+            messageId: 'noObjectProps',
+            data: { prop: 'ref', propsType: 'InputProps' },
           },
         ],
       },
