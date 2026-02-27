@@ -429,7 +429,7 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       noPassThroughProp:
-        "Prop '{{prop}}' in '{{component}}' is only forwarded to '{{forwardedTo}}' (pass-through depth {{depth}}, allowed {{allowedDepth}}). Remove it or compose via children.",
+        "Prop '{{prop}}' in '{{component}}' has a prop drilling depth of {{depth}} (allowed {{allowedDepth}}). Use compound composition.",
     },
     schema: [
       {
@@ -487,9 +487,40 @@ const rule: Rule.RuleModule = {
       },
       'Program:exit'() {
         const memo = new Map<string, number>();
+        const flaggedComponents: Array<{ component: ComponentPassThroughRecord; depth: number }> = [];
+
         for (const component of components.values()) {
           const depth = computePassThroughDepth(component.name, components, memo, new Set<string>());
-          if (depth <= allowedDepth) continue;
+          if (depth <= allowedDepth) {
+            continue;
+          }
+          flaggedComponents.push({ component, depth });
+        }
+
+        flaggedComponents.sort((left, right) => {
+          if (right.depth !== left.depth) {
+            return right.depth - left.depth;
+          }
+          return left.component.name.localeCompare(right.component.name);
+        });
+
+        const flaggedNames = new Set(flaggedComponents.map((entry) => entry.component.name));
+
+        for (const flaggedComponent of flaggedComponents) {
+          const component = flaggedComponent.component;
+          const depth = flaggedComponent.depth;
+          const hasFlaggedParent = flaggedComponents.some((candidate) => {
+            if (candidate.component.name === component.name) {
+              return false;
+            }
+            if (!flaggedNames.has(candidate.component.name)) {
+              return false;
+            }
+            return candidate.component.passThroughChildren.has(component.name);
+          });
+          if (hasFlaggedParent) {
+            continue;
+          }
 
           for (const violation of component.violations) {
             context.report({

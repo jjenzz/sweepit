@@ -123,16 +123,6 @@ describe('no-pass-through-props', () => {
               allowedDepth: '2',
             },
           },
-          {
-            messageId: 'noPassThroughProp',
-            data: {
-              prop: '...props',
-              component: 'LevelTwo',
-              forwardedTo: 'props spread',
-              depth: '3',
-              allowedDepth: '2',
-            },
-          },
         ],
       },
     ],
