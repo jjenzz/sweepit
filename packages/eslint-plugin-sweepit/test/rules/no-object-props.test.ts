@@ -30,6 +30,8 @@ describe('no-object-props', () => {
       'interface ButtonProps { tone: string; onValueChange: (value: string) => void; count: number }',
       'interface ButtonProps { style: { color: string } }',
       'type ButtonProps = { onClick: () => void; disabled: boolean }',
+      'interface ButtonProps { children?: React.ReactNode }',
+      "import type { ReactNode } from 'react'; interface ButtonProps { children?: ReactNode }",
       'interface UserOptions { user: { id: string } }',
       {
         code: 'interface InputProps { ref: { current: HTMLInputElement | null } }',
@@ -70,6 +72,15 @@ describe('no-object-props', () => {
           {
             messageId: 'noObjectProps',
             data: { prop: 'ref', propsType: 'InputProps' },
+          },
+        ],
+      },
+      {
+        code: 'interface ButtonProps { children: { content: string } }',
+        errors: [
+          {
+            messageId: 'noObjectProps',
+            data: { prop: 'children', propsType: 'ButtonProps' },
           },
         ],
       },

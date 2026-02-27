@@ -50,6 +50,29 @@ function createIgnoredPropMatcher(ignorePatterns: string[]): (propName: string) 
   const regexes = ignorePatterns.map(globToRegex);
   return (propName: string) => regexes.some((regex) => regex.test(propName));
 }
+
+function isAllowedChildrenType(typeAnnotationNode: Rule.Node | undefined): boolean {
+  if (!typeAnnotationNode) return false;
+  const annotationNode = (typeAnnotationNode as { typeAnnotation?: Rule.Node }).typeAnnotation;
+  if (!annotationNode) return false;
+  return isReactNodeTypeNode(annotationNode);
+}
+
+function isReactNodeTypeNode(typeNode: Rule.Node | undefined): boolean {
+  if (!typeNode) return false;
+  const typedNode = typeNode as {
+    type?: string;
+    typeName?: Rule.Node;
+    typeAnnotation?: Rule.Node;
+  };
+  if (typedNode.type === 'TSTypeReference') {
+    return getTypeName(typedNode.typeName) === 'ReactNode';
+  }
+  if (typedNode.type === 'TSParenthesizedType' || typedNode.type === 'TSOptionalType') {
+    return isReactNodeTypeNode(typedNode.typeAnnotation);
+  }
+  return false;
+}
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -193,6 +216,7 @@ const rule: Rule.RuleModule = {
         if (property.type !== 'TSPropertySignature' || !property.typeAnnotation) continue;
         const propName = getPropertyName(property.key);
         if (!propName || propName === 'style' || isIgnoredPropName(propName)) continue;
+        if (propName === 'children' && isAllowedChildrenType(property.typeAnnotation)) continue;
         if (!memberHasObjectType(property.typeAnnotation)) continue;
         context.report({
           node: member,

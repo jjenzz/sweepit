@@ -19,6 +19,7 @@ Object props often couple components to data models and business-layer shapes.
   - Function member types.
   - `style` object members (for style contracts).
   - Object members matching configured `ignore` patterns.
+  - `children?: React.ReactNode` (or `children?: ReactNode`) when it must be declared explicitly.
   - Type definitions not ending in `Props`.
 
 ### Type Information
@@ -54,6 +55,18 @@ type CardProps = {
 ### Correct
 
 ```ts
+import type { ComponentPropsWithoutRef } from 'react';
+
+// Prefer inheriting children from composed element/component props.
+interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
+  tone: 'info' | 'warning';
+}
+
+// If you must declare it directly, ReactNode is allowed for children.
+interface PanelProps {
+  children?: React.ReactNode;
+}
+
 interface CardProps {
   tone: 'info' | 'warning';
   elevation: number;
