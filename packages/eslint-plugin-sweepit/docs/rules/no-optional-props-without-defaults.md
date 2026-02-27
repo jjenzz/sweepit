@@ -11,6 +11,7 @@ Optional props are often used to represent "data not ready yet", which spreads n
 - **Target**: PascalCase function components and arrow-function components.
 - **Reported**: Optional props in the component prop type that are not defaulted in the component parameter.
 - **Allowed**: Optional props with explicit defaults in destructured parameters.
+- **Ignored**: Optional props matched by `ignore` glob patterns.
 
 ### Type Information
 
@@ -21,7 +22,9 @@ Inherited props from `extends` chains are ignored.
 
 ## Options
 
-This rule has no options.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ignore` | `string[]` | `[]` | Optional prop-name glob patterns to ignore (for example `on*`, `ref`, `render`). |
 
 ## Examples
 

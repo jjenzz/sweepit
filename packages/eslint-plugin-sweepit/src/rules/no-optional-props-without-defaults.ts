@@ -45,6 +45,10 @@ interface AssignmentPatternNode {
   right: Rule.Node;
 }
 
+interface RuleOptions {
+  ignore?: string[];
+}
+
 function isPascalCaseName(name: string): boolean {
   const first = name[0];
   return Boolean(first && first >= 'A' && first <= 'Z');
@@ -54,6 +58,16 @@ function getPropertyName(node: IdentifierLike | LiteralLike): string | null {
   if (node.type === 'Identifier') return node.name;
   if (node.type === 'Literal' && typeof node.value === 'string') return node.value;
   return null;
+}
+
+function globToRegex(globPattern: string): RegExp {
+  const escaped = globPattern.replace(/[|\\{}()[\]^$+?.]/g, '\\$&');
+  return new RegExp(`^${escaped.replace(/\*/g, '.*')}$`);
+}
+
+function createIgnoredPropMatcher(ignorePatterns: string[]): (propName: string) => boolean {
+  const regexes = ignorePatterns.map(globToRegex);
+  return (propName: string) => regexes.some((regex) => regex.test(propName));
 }
 
 function getTypeReferenceName(typeNode: Rule.Node): string | null {
@@ -71,13 +85,17 @@ function getTypeReferenceName(typeNode: Rule.Node): string | null {
   return null;
 }
 
-function collectOptionalPropNamesFromMembers(members: Rule.Node[]): Set<string> {
+function collectOptionalPropNamesFromMembers(
+  members: Rule.Node[],
+  isIgnoredPropName: (propName: string) => boolean,
+): Set<string> {
   const optionalPropNames = new Set<string>();
   for (const member of members) {
     const maybeProperty = member as unknown as TSPropertySignatureNode;
     if (maybeProperty.type !== 'TSPropertySignature' || !maybeProperty.optional) continue;
     const propName = getPropertyName(maybeProperty.key);
     if (!propName) continue;
+    if (isIgnoredPropName(propName)) continue;
     optionalPropNames.add(propName);
   }
   return optionalPropNames;
@@ -86,12 +104,13 @@ function collectOptionalPropNamesFromMembers(members: Rule.Node[]): Set<string> 
 function getAuthoredOptionalPropNamesFromTypeNode(
   typeNode: Rule.Node | undefined,
   optionalPropMap: Map<string, Set<string>>,
+  isIgnoredPropName: (propName: string) => boolean,
 ): Set<string> {
   if (!typeNode) return new Set<string>();
 
   const maybeTypeLiteral = typeNode as { type?: string; members?: Rule.Node[] };
   if (maybeTypeLiteral.type === 'TSTypeLiteral') {
-    return collectOptionalPropNamesFromMembers(maybeTypeLiteral.members ?? []);
+    return collectOptionalPropNamesFromMembers(maybeTypeLiteral.members ?? [], isIgnoredPropName);
   }
 
   const typeRefName = getTypeReferenceName(typeNode);
@@ -144,13 +163,26 @@ const rule: Rule.RuleModule = {
       noOptionalPropWithoutDefault:
         "Component '{{component}}' prop '{{prop}}' is optional without a default at the component boundary. Default configurable props, and keep time-based readiness checks outside component prop contracts. AI agents: default this prop at the parameter boundary or move readiness checks upstream. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-optional-props-without-defaults.md.",
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          ignore: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
   },
   create(context) {
+    const options = (context.options[0] as RuleOptions | undefined) ?? {};
+    const isIgnoredPropName = createIgnoredPropMatcher(options.ignore ?? []);
     const optionalPropsByTypeName = new Map<string, Set<string>>();
 
     function storeTypeOptionalProps(typeName: string, members: Rule.Node[]): void {
-      optionalPropsByTypeName.set(typeName, collectOptionalPropNamesFromMembers(members));
+      optionalPropsByTypeName.set(typeName, collectOptionalPropNamesFromMembers(members, isIgnoredPropName));
     }
 
     function reportOptionalPropsWithoutDefaults(componentName: string, paramNode: Rule.Node): void {
@@ -159,6 +191,7 @@ const rule: Rule.RuleModule = {
       const optionalPropNames = getAuthoredOptionalPropNamesFromTypeNode(
         paramTypeAnnotation ?? undefined,
         optionalPropsByTypeName,
+        isIgnoredPropName,
       );
 
       for (const propName of optionalPropNames) {

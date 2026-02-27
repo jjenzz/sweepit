@@ -57,7 +57,12 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'sweepit/no-object-props': 'error',
       'sweepit/no-array-props': 'error',
       'sweepit/no-prefixed-prop-bundles': 'error',
-      'sweepit/no-optional-props-without-defaults': 'error',
+      'sweepit/no-optional-props-without-defaults': [
+        'error',
+        {
+          ignore: ['on*', 'ref', 'render'],
+        },
+      ],
       'sweepit/no-boolean-capability-props': [
         'error',
         {
