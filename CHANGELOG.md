@@ -1,3 +1,21 @@
+# v0.0.8 (Fri Feb 27 2026)
+
+#### 🚀 Enhancement
+
+- make error messages succinct for custom rules [#14](https://github.com/jjenzz/sweepi/pull/14) ([@jjenzz](https://github.com/jjenzz))
+- Refine optional-props defaults rule scope and ignores [#12](https://github.com/jjenzz/sweepi/pull/12) ([@jjenzz](https://github.com/jjenzz))
+- add ignore options to no-boolean-capability-props defaults [#11](https://github.com/jjenzz/sweepi/pull/11) ([@jjenzz](https://github.com/jjenzz))
+
+#### 🐛 Bug Fix
+
+- fix: validate compound part aliases across exports [#13](https://github.com/jjenzz/sweepi/pull/13) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.7 (Fri Feb 27 2026)
 
 #### 🚀 Enhancement
