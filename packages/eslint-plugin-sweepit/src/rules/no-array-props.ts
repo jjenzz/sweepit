@@ -40,10 +40,6 @@ function isArrayLikeTypeText(typeText: string): boolean {
   );
 }
 
-function extendSeenAliases(seenAliases: Set<string>, typeName: string): Set<string> {
-  return new Set([...seenAliases, typeName]);
-}
-
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -79,14 +75,23 @@ const rule: Rule.RuleModule = {
     const checker = parserServices?.program?.getTypeChecker();
     const hasTypeInformation = Boolean(checker && parserServices?.esTreeNodeToTSNodeMap);
     const localTypeAliases = new Map<string, Rule.Node>();
+    const disallowedArrayTypeCache = new WeakMap<object, boolean>();
 
     function isDisallowedArrayType(type: ts.Type | undefined): boolean {
       if (!type || !checker) return false;
+      const cached = disallowedArrayTypeCache.get(type as unknown as object);
+      if (cached !== undefined) return cached;
+
+      let result = false;
       if (type.isUnionOrIntersection()) {
-        return type.types.some((entry) => isDisallowedArrayType(entry));
+        result = type.types.some((entry) => isDisallowedArrayType(entry));
+      } else if (checker.isArrayType(type) || checker.isTupleType(type)) {
+        result = true;
+      } else {
+        result = isArrayLikeTypeText(checker.typeToString(type));
       }
-      if (checker.isArrayType(type) || checker.isTupleType(type)) return true;
-      return isArrayLikeTypeText(checker.typeToString(type));
+      disallowedArrayTypeCache.set(type as unknown as object, result);
+      return result;
     }
 
     function isArrayLikeTypeNode(
@@ -118,7 +123,10 @@ const rule: Rule.RuleModule = {
         if (seenAliases.has(typeName)) return false;
         const aliasType = localTypeAliases.get(typeName);
         if (!aliasType) return false;
-        return isArrayLikeTypeNode(aliasType, extendSeenAliases(seenAliases, typeName));
+        seenAliases.add(typeName);
+        const result = isArrayLikeTypeNode(aliasType, seenAliases);
+        seenAliases.delete(typeName);
+        return result;
       }
       return false;
     }
@@ -128,12 +136,14 @@ const rule: Rule.RuleModule = {
       const annotationNode = (typeAnnotationNode as { typeAnnotation?: Rule.Node }).typeAnnotation;
       if (!annotationNode) return false;
 
+      if (isArrayLikeTypeNode(annotationNode, new Set<string>())) return true;
+
       if (hasTypeInformation && checker && parserServices?.esTreeNodeToTSNodeMap) {
         const tsNode = parserServices.esTreeNodeToTSNodeMap.get(annotationNode);
         if (tsNode && isDisallowedArrayType(checker.getTypeAtLocation(tsNode))) return true;
       }
 
-      return isArrayLikeTypeNode(annotationNode, new Set<string>());
+      return false;
     }
 
     function reportIfDisallowedMember(member: Rule.Node, propsTypeName: string): void {
@@ -194,7 +204,9 @@ const rule: Rule.RuleModule = {
         if (!typeName || seenAliases.has(typeName)) return;
         const aliasType = localTypeAliases.get(typeName);
         if (!aliasType) return;
-        visitPropsType(aliasType, propsTypeName, extendSeenAliases(seenAliases, typeName));
+        seenAliases.add(typeName);
+        visitPropsType(aliasType, propsTypeName, seenAliases);
+        seenAliases.delete(typeName);
       }
     }
 

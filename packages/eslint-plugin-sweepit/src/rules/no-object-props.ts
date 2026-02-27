@@ -37,10 +37,6 @@ function isWrapperType(type: string | undefined): boolean {
   return type === 'TSParenthesizedType' || type === 'TSOptionalType' || type === 'TSTypeOperator';
 }
 
-function extendSeenAliases(seenAliases: Set<string>, typeName: string): Set<string> {
-  return new Set([...seenAliases, typeName]);
-}
-
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -76,22 +72,30 @@ const rule: Rule.RuleModule = {
     const checker = parserServices?.program?.getTypeChecker();
     const hasTypeInformation = Boolean(checker && parserServices?.esTreeNodeToTSNodeMap);
     const localTypeAliases = new Map<string, Rule.Node>();
+    const disallowedObjectTypeCache = new WeakMap<object, boolean>();
 
     function isDisallowedObjectType(type: ts.Type | undefined): boolean {
       if (!type || !checker) return false;
+      const cached = disallowedObjectTypeCache.get(type as unknown as object);
+      if (cached !== undefined) return cached;
 
+      let result = false;
       if (type.isUnionOrIntersection()) {
-        return type.types.some((entry) => isDisallowedObjectType(entry));
+        result = type.types.some((entry) => isDisallowedObjectType(entry));
+      } else if (checker.isArrayType(type) || checker.isTupleType(type)) {
+        result = false;
+      } else if (checker.getSignaturesOfType(type, ts.SignatureKind.Call).length > 0) {
+        result = false;
+      } else if (checker.getSignaturesOfType(type, ts.SignatureKind.Construct).length > 0) {
+        result = false;
+      } else {
+        result =
+          (type.flags & ts.TypeFlags.Object) !== 0 ||
+          (type.flags & ts.TypeFlags.NonPrimitive) !== 0;
       }
 
-      if (checker.isArrayType(type) || checker.isTupleType(type)) return false;
-      if (checker.getSignaturesOfType(type, ts.SignatureKind.Call).length > 0) return false;
-      if (checker.getSignaturesOfType(type, ts.SignatureKind.Construct).length > 0) return false;
-
-      const isObjectLike =
-        (type.flags & ts.TypeFlags.Object) !== 0 || (type.flags & ts.TypeFlags.NonPrimitive) !== 0;
-
-      return isObjectLike;
+      disallowedObjectTypeCache.set(type as unknown as object, result);
+      return result;
     }
 
     function memberHasObjectType(typeAnnotationNode: Rule.Node | undefined): boolean {
@@ -99,12 +103,14 @@ const rule: Rule.RuleModule = {
       const annotationNode = (typeAnnotationNode as { typeAnnotation?: Rule.Node }).typeAnnotation;
       if (!annotationNode) return false;
 
+      if (isObjectLikeTypeNode(annotationNode)) return true;
+
       if (hasTypeInformation && checker && parserServices?.esTreeNodeToTSNodeMap) {
         const tsNode = parserServices.esTreeNodeToTSNodeMap.get(annotationNode);
         if (tsNode && isDisallowedObjectType(checker.getTypeAtLocation(tsNode))) return true;
       }
 
-      return isObjectLikeTypeNode(annotationNode);
+      return false;
     }
 
     function isObjectLikeTypeNode(typeNode: Rule.Node | undefined): boolean {
@@ -143,7 +149,9 @@ const rule: Rule.RuleModule = {
       if (!typeName || seenAliases.has(typeName)) return;
       const aliasType = localTypeAliases.get(typeName);
       if (!aliasType) return;
-      visitPropsType(aliasType, propsTypeName, extendSeenAliases(seenAliases, typeName));
+      seenAliases.add(typeName);
+      visitPropsType(aliasType, propsTypeName, seenAliases);
+      seenAliases.delete(typeName);
     }
 
     function reportDisallowedObjectMembers(

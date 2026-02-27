@@ -205,13 +205,9 @@ function checkComponent(
   }
 
   const parentMap = new WeakMap<object, ParentRef>();
-  const seenForParents = new WeakSet<object>();
-  walkAst(body, functionNode, seenForParents, (node, parent) => {
-    parentMap.set(node as unknown as object, { parent });
-  });
-
   const seenForUsage = new WeakSet<object>();
   walkAst(body, functionNode, seenForUsage, (node, parent) => {
+    parentMap.set(node as unknown as object, { parent });
     if (node.type !== 'Identifier') return;
     const identifier = node as unknown as { name: string };
     const usage = usageMap.get(identifier.name);

@@ -86,21 +86,17 @@ const rule: Rule.RuleModule = {
       return null;
     }
 
-    function astContainsReactType(
-      typeNode: unknown,
-      reactTypeName: 'ReactNode' | 'ReactElement',
-      visitedAliases: Set<string>,
-    ): boolean {
+    function astContainsReactElementType(typeNode: unknown, visitedAliases: Set<string>): boolean {
       if (!typeNode || typeof typeNode !== 'object') return false;
       const node = typeNode as Record<string, unknown>;
 
       if (node.type === 'TSTypeReference') {
         const ref = node as unknown as TSTypeReferenceNode;
         const typeName = getTypeNameFromRef(ref);
-        if (typeName === reactTypeName) return true;
+        if (typeName === 'ReactNode' || typeName === 'ReactElement') return true;
         if (typeName && aliasTypeMap.has(typeName) && !visitedAliases.has(typeName)) {
           visitedAliases.add(typeName);
-          return astContainsReactType(aliasTypeMap.get(typeName), reactTypeName, visitedAliases);
+          return astContainsReactElementType(aliasTypeMap.get(typeName), visitedAliases);
         }
         return false;
       }
@@ -108,13 +104,13 @@ const rule: Rule.RuleModule = {
       if (node.type === 'TSUnionType' || node.type === 'TSIntersectionType') {
         const unionNode = node as { types?: unknown[] };
         return (unionNode.types ?? []).some((entry) =>
-          astContainsReactType(entry, reactTypeName, visitedAliases),
+          astContainsReactElementType(entry, visitedAliases),
         );
       }
 
       if (node.type === 'TSOptionalType' || node.type === 'TSParenthesizedType') {
         const wrapped = node as { typeAnnotation?: unknown };
-        return astContainsReactType(wrapped.typeAnnotation, reactTypeName, visitedAliases);
+        return astContainsReactElementType(wrapped.typeAnnotation, visitedAliases);
       }
 
       return false;
@@ -124,10 +120,7 @@ const rule: Rule.RuleModule = {
       const name = getPropKeyName(prop);
       if (!name) return;
       const typeAnn = prop.typeAnnotation?.typeAnnotation;
-      const hasReactNodeType = astContainsReactType(typeAnn, 'ReactNode', new Set());
-      const hasReactElementType = astContainsReactType(typeAnn, 'ReactElement', new Set());
-
-      const hasElementType = hasReactNodeType || hasReactElementType;
+      const hasElementType = astContainsReactElementType(typeAnn, new Set());
       if (hasElementType && name !== 'children' && name !== 'render') {
         context.report({
           node: reportNode,
