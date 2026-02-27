@@ -33,7 +33,14 @@ describe('plugin:sweepit/core', () => {
     expect(coreConfig.languageOptions?.parserOptions?.projectService).toBe(true);
     expect(coreConfig.languageOptions?.parserOptions?.tsconfigRootDir).toBe(process.cwd());
     expect(coreConfig.rules?.['sonarjs/prefer-read-only-props']).toBe('off');
-    expect(coreConfig.rules?.['functional/immutable-data']).toBe('error');
+    expect(coreConfig.rules?.['functional/immutable-data']).toEqual([
+      'error',
+      {
+        ignoreAccessorPattern: ['*.displayName'],
+        ignoreMapsAndSets: true,
+        ignoreNonConstDeclarations: true,
+      },
+    ]);
     expect(coreConfig.rules?.['no-param-reassign']).toEqual(['error', { props: true }]);
     expect(coreConfig.rules?.['prefer-const']).toBe('error');
     expect(coreConfig.rules?.['@typescript-eslint/switch-exhaustiveness-check']).toBe('error');
