@@ -43,6 +43,17 @@ describe('no-optional-props-without-defaults', () => {
           return props.open;
         }
       `,
+      `
+        interface ThirdPartyProps {
+          fromLibrary?: boolean;
+        }
+        interface ButtonProps extends ThirdPartyProps {
+          tone: 'primary' | 'secondary';
+        }
+        function Button(props: ButtonProps) {
+          return props.tone;
+        }
+      `,
     ],
     invalid: [
       {

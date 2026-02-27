@@ -16,7 +16,8 @@ Optional props are often used to represent "data not ready yet", which spreads n
 
 This rule works without TypeScript project services by checking explicit local type declarations.
 
-When type information is enabled, optional-prop detection is more accurate for inferred and referenced types.
+Only authored optional props are checked (type literals and local `interface`/`type` members).
+Inherited props from `extends` chains are ignored.
 
 ## Options
 
