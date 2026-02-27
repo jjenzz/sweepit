@@ -1,3 +1,26 @@
+# v0.0.12 (Fri Feb 27 2026)
+
+#### 🚀 Enhancement
+
+- Allow `*.current` mutations in immutable-data core config [#26](https://github.com/jjenzz/sweepi/pull/26) ([@jjenzz](https://github.com/jjenzz))
+- Add allowedDepth to no-pass-through-props (and rename to `no-prop-drilling`) [#24](https://github.com/jjenzz/sweepi/pull/24) ([@jjenzz](https://github.com/jjenzz))
+- Increase modified complexity threshold in core config [#23](https://github.com/jjenzz/sweepi/pull/23) ([@jjenzz](https://github.com/jjenzz))
+- Configure immutable-data options in core config [#22](https://github.com/jjenzz/sweepi/pull/22) ([@jjenzz](https://github.com/jjenzz))
+
+#### 🐛 Bug Fix
+
+- Allow no-object-props ignore list for refs [#25](https://github.com/jjenzz/sweepi/pull/25) ([@jjenzz](https://github.com/jjenzz))
+
+#### 🏎 Performance
+
+- Improve Sweepit rule performance on large repos [#21](https://github.com/jjenzz/sweepi/pull/21) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.11 (Fri Feb 27 2026)
 
 #### 🚀 Enhancement
