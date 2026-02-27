@@ -27,6 +27,7 @@ npx sweepi ./path/to/project
 ```
 
 Initialize Sweepi once to create `~/.sweepi`, then run Sweepi against any project directory.
+Initialization also installs the Sweepi LLM skill with `npx skills add jjenzz/sweepi`.
 
 ## Guarantees
 

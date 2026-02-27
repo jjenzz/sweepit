@@ -24,6 +24,9 @@ describe('initializeToolchain', () => {
           'utf8',
         );
       },
+      runSkillInstallCommand: async (command, args, cwd) => {
+        installCalls.push({ command, args, cwd });
+      },
     });
 
     const toolchainDirectory = path.join(tempDirectory, '.sweepi');
@@ -37,17 +40,22 @@ describe('initializeToolchain', () => {
     expect(await readText(configPath)).toContain("const files = ['**/*.ts', '**/*.tsx'];");
     expect(await readText(configPath)).toContain("'**/*.test.*'");
     expect(await readText(configPath)).toContain("'**/*.spec.*'");
-    expect(await readText(configPath)).toContain('const withScope = (config) => ({');
-    expect(installCalls).toHaveLength(1);
+    expect(await readText(configPath)).toContain('const withFiles = (config) => ({');
+    expect(installCalls).toHaveLength(2);
     expect(installCalls[0]?.command).toBe('npm');
     expect(installCalls[0]?.cwd).toBe(toolchainDirectory);
     expect(installCalls[0]?.args.some((arg) => arg.startsWith('eslint-plugin-sweepit@'))).toBe(
       true,
     );
     expect(installCalls[0]?.args).toContain('--no-package-lock');
+    expect(installCalls[1]).toEqual({
+      command: 'npx',
+      args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+      cwd: toolchainDirectory,
+    });
   });
 
-  it('does not reinstall when toolchain is already initialized', async () => {
+  it('does not reinstall dependencies when toolchain is already initialized', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-init-test-'));
     const toolchainDirectory = path.join(tempDirectory, '.sweepi');
     const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
@@ -65,16 +73,25 @@ describe('initializeToolchain', () => {
       'utf8',
     );
 
-    let installAttempts = 0;
+    const installCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
     const result = await initializeToolchain({
       homeDirectory: tempDirectory,
-      runInstallCommand: async () => {
-        installAttempts += 1;
+      runInstallCommand: async (command, args, cwd) => {
+        installCalls.push({ command, args, cwd });
+      },
+      runSkillInstallCommand: async (command, args, cwd) => {
+        installCalls.push({ command, args, cwd });
       },
     });
 
     expect(result.installedDependencies).toBe(false);
-    expect(installAttempts).toBe(0);
+    expect(installCalls).toEqual([
+      {
+        command: 'npx',
+        args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+        cwd: toolchainDirectory,
+      },
+    ]);
   });
 
   it('removes and reinstalls toolchain when force reset is enabled', async () => {
@@ -98,12 +115,12 @@ describe('initializeToolchain', () => {
     );
     await fs.writeFile(staleFilePath, 'stale', 'utf8');
 
-    let installAttempts = 0;
+    const installCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
     const result = await initializeToolchain({
       homeDirectory: tempDirectory,
       forceReset: true,
       runInstallCommand: async (command, args, cwd) => {
-        installAttempts += 1;
+        installCalls.push({ command, args, cwd });
         const binaryPath = path.join(cwd, 'node_modules', '.bin');
         const packageDirectoryPath = path.join(cwd, 'node_modules', 'eslint-plugin-sweepit');
         await fs.mkdir(binaryPath, { recursive: true });
@@ -114,13 +131,21 @@ describe('initializeToolchain', () => {
           '{"name":"eslint-plugin-sweepit"}',
           'utf8',
         );
-        expect(command).toBe('npm');
         expect(args.some((arg) => arg.startsWith('eslint-plugin-sweepit@'))).toBe(true);
+      },
+      runSkillInstallCommand: async (command, args, cwd) => {
+        installCalls.push({ command, args, cwd });
       },
     });
 
     expect(result.installedDependencies).toBe(true);
-    expect(installAttempts).toBe(1);
+    expect(installCalls).toHaveLength(2);
+    expect(installCalls[0]?.command).toBe('npm');
+    expect(installCalls[1]).toEqual({
+      command: 'npx',
+      args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+      cwd: toolchainDirectory,
+    });
     expect(await fs.stat(staleFilePath).catch(() => null)).toBeNull();
   });
 });

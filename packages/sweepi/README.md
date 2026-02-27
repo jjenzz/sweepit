@@ -28,6 +28,7 @@ This creates `~/.sweepi`, writes `~/.sweepi/eslint.config.mjs`, and installs:
 
 - `eslint@^9`
 - `eslint-plugin-sweepit@latest`
+- Sweepi skill via `npx skills add jjenzz/sweepi`
 
 ## How lint runs
 

@@ -49,6 +49,7 @@ export default [
 interface InitializeToolchainOptions {
   homeDirectory?: string;
   runInstallCommand?: (command: string, args: string[], cwd: string) => Promise<void>;
+  runSkillInstallCommand?: (command: string, args: string[], cwd: string) => Promise<void>;
   onStatus?: (message: string) => void;
   forceReset?: boolean;
 }
@@ -120,6 +121,15 @@ async function initializeToolchain(
   } else {
     onStatus?.(`Reusing existing Sweepi toolchain in ${toolchainDirectory}`);
   }
+
+  onStatus?.('Installing Sweepi LLM skill...');
+  const runSkillInstallCommand = options.runSkillInstallCommand ?? runInstallCommandWithNpm;
+  await runSkillInstallCommand(
+    'npx',
+    ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+    toolchainDirectory,
+  );
+  onStatus?.('Installed Sweepi LLM skill');
 
   return {
     toolchainDirectory,
