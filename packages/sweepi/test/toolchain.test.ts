@@ -37,8 +37,8 @@ describe('initializeToolchain', () => {
     expect(installCalls).toHaveLength(1);
     expect(installCalls[0]?.command).toBe('npm');
     expect(installCalls[0]?.cwd).toBe(toolchainDirectory);
-    expect(installCalls[0]?.args).toContain('eslint@^9.0.0');
-    expect(installCalls[0]?.args).toContain('eslint-plugin-sweepit@latest');
+    expect(installCalls[0]?.args).toContain('eslint-plugin-sweepit@0.0.5');
+    expect(installCalls[0]?.args).toContain('--no-package-lock');
   });
 
   it('does not reinstall when toolchain is already initialized', async () => {
@@ -70,43 +70,93 @@ describe('initializeToolchain', () => {
     expect(result.installedDependencies).toBe(false);
     expect(installAttempts).toBe(0);
   });
+
+  it('removes and reinstalls toolchain when force reset is enabled', async () => {
+    const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-init-test-'));
+    const toolchainDirectory = path.join(tempDirectory, '.sweepi');
+    const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
+    const pluginPackageDirectoryPath = path.join(
+      toolchainDirectory,
+      'node_modules',
+      'eslint-plugin-sweepit',
+    );
+    const staleFilePath = path.join(toolchainDirectory, 'stale.txt');
+
+    await fs.mkdir(eslintBinaryPath, { recursive: true });
+    await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
+    await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
+    await fs.writeFile(
+      path.join(pluginPackageDirectoryPath, 'package.json'),
+      '{"name":"eslint-plugin-sweepit"}',
+      'utf8',
+    );
+    await fs.writeFile(staleFilePath, 'stale', 'utf8');
+
+    let installAttempts = 0;
+    const result = await initializeToolchain({
+      homeDirectory: tempDirectory,
+      forceReset: true,
+      runInstallCommand: async (command, args, cwd) => {
+        installAttempts += 1;
+        const binaryPath = path.join(cwd, 'node_modules', '.bin');
+        const packageDirectoryPath = path.join(cwd, 'node_modules', 'eslint-plugin-sweepit');
+        await fs.mkdir(binaryPath, { recursive: true });
+        await fs.mkdir(packageDirectoryPath, { recursive: true });
+        await fs.writeFile(path.join(binaryPath, 'eslint'), '', 'utf8');
+        await fs.writeFile(
+          path.join(packageDirectoryPath, 'package.json'),
+          '{"name":"eslint-plugin-sweepit"}',
+          'utf8',
+        );
+        expect(command).toBe('npm');
+        expect(args).toContain('eslint-plugin-sweepit@0.0.5');
+      },
+    });
+
+    expect(result.installedDependencies).toBe(true);
+    expect(installAttempts).toBe(1);
+    expect(await fs.stat(staleFilePath).catch(() => null)).toBeNull();
+  });
 });
 
 describe('runSweepi', () => {
-  it('initializes toolchain and runs eslint against the target project directory', async () => {
+  it('runs eslint against the target project directory when toolchain is initialized', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
     const homeDirectory = path.join(tempDirectory, 'home');
     const projectDirectory = path.join(tempDirectory, 'project');
+    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
+    const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
+    const pluginPackageDirectoryPath = path.join(
+      toolchainDirectory,
+      'node_modules',
+      'eslint-plugin-sweepit',
+    );
     await fs.mkdir(projectDirectory, { recursive: true });
+    await fs.mkdir(eslintBinaryPath, { recursive: true });
+    await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
+    await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
+    await fs.writeFile(
+      path.join(pluginPackageDirectoryPath, 'package.json'),
+      '{"name":"eslint-plugin-sweepit"}',
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      'export default [];',
+      'utf8',
+    );
 
-    const installCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
     const lintCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
-      runInstallCommand: async (command, args, cwd) => {
-        installCalls.push({ command, args, cwd });
-        const eslintBinaryPath = path.join(cwd, 'node_modules', '.bin');
-        const pluginPackageDirectoryPath = path.join(cwd, 'node_modules', 'eslint-plugin-sweepit');
-        await fs.mkdir(eslintBinaryPath, { recursive: true });
-        await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
-        await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
-        await fs.writeFile(
-          path.join(pluginPackageDirectoryPath, 'package.json'),
-          '{"name":"eslint-plugin-sweepit"}',
-          'utf8',
-        );
-      },
       runLintCommand: async (command, args, cwd) => {
         lintCalls.push({ command, args, cwd });
         return 0;
       },
     });
 
-    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
-
     expect(exitCode).toBe(0);
-    expect(installCalls).toHaveLength(1);
     expect(lintCalls).toHaveLength(1);
     expect(lintCalls[0]?.command).toBe(
       path.join(toolchainDirectory, 'node_modules', '.bin', 'eslint'),
@@ -139,6 +189,7 @@ describe('runSweepi', () => {
       '{"name":"eslint-plugin-sweepit"}',
       'utf8',
     );
+    await fs.writeFile(path.join(toolchainDirectory, 'eslint.config.mjs'), 'export default [];', 'utf8');
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
@@ -154,6 +205,18 @@ describe('runSweepi', () => {
 
     await expect(runSweepi(missingProjectDirectory)).rejects.toThrow(
       `Project directory does not exist: ${missingProjectDirectory}`,
+    );
+  });
+
+  it('throws when the toolchain is not initialized', async () => {
+    const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
+    const homeDirectory = path.join(tempDirectory, 'home');
+    const projectDirectory = path.join(tempDirectory, 'project');
+    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
+    await fs.mkdir(projectDirectory, { recursive: true });
+
+    await expect(runSweepi(projectDirectory, { homeDirectory })).rejects.toThrow(
+      `Sweepi toolchain is not initialized in ${toolchainDirectory}. Run "sweepi init" first.`,
     );
   });
 });
