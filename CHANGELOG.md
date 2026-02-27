@@ -1,3 +1,15 @@
+# v0.0.10 (Fri Feb 27 2026)
+
+#### 🚀 Enhancement
+
+- Include --global when installing Sweepi skill [#17](https://github.com/jjenzz/sweepi/pull/17) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.9 (Fri Feb 27 2026)
 
 #### 🚀 Enhancement
