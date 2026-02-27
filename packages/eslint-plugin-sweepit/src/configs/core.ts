@@ -22,10 +22,7 @@ function createCoreConfig(_sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       },
     },
     rules: {
-      'functional/functional-parameters': 'error',
       'functional/immutable-data': 'error',
-      'functional/no-let': 'error',
-      'functional/no-return-void': 'error',
       'no-param-reassign': ['error', { props: true }],
       'prefer-const': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',

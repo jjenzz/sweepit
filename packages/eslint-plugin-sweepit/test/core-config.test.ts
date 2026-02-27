@@ -32,10 +32,7 @@ describe('plugin:sweepit/core', () => {
     expect(coreConfig.languageOptions?.parser).toBeDefined();
     expect(coreConfig.languageOptions?.parserOptions?.projectService).toBe(true);
     expect(coreConfig.languageOptions?.parserOptions?.tsconfigRootDir).toBe(process.cwd());
-    expect(coreConfig.rules?.['functional/functional-parameters']).toBe('error');
     expect(coreConfig.rules?.['functional/immutable-data']).toBe('error');
-    expect(coreConfig.rules?.['functional/no-let']).toBe('error');
-    expect(coreConfig.rules?.['functional/no-return-void']).toBe('error');
     expect(coreConfig.rules?.['no-param-reassign']).toEqual(['error', { props: true }]);
     expect(coreConfig.rules?.['prefer-const']).toBe('error');
     expect(coreConfig.rules?.['@typescript-eslint/switch-exhaustiveness-check']).toBe('error');
