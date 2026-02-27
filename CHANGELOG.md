@@ -1,3 +1,15 @@
+# v0.0.13 (Fri Feb 27 2026)
+
+#### 🐛 Bug Fix
+
+- Allow ReactNode children in no-object-props [#27](https://github.com/jjenzz/sweepi/pull/27) ([@jjenzz](https://github.com/jjenzz))
+
+#### Authors: 1
+
+- Jenna Smith ([@jjenzz](https://github.com/jjenzz))
+
+---
+
 # v0.0.12 (Fri Feb 27 2026)
 
 #### 🚀 Enhancement
