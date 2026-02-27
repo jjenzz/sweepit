@@ -33,6 +33,7 @@ function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
         },
       ],
       'no-param-reassign': ['error', { props: true }],
+      'max-params': ['error', { max: 4 }],
       'prefer-const': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       'sweepit/complexity': ['error', { max: 5, variant: 'modified' }],
