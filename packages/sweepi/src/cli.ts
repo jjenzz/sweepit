@@ -11,7 +11,12 @@ async function run(): Promise<void> {
   }
 
   if (command === 'init') {
-    const initialization = await initializeToolchain();
+    const initArguments = process.argv.slice(3);
+    const forceReset = parseForceResetOption(initArguments);
+    const initialization = await initializeToolchain({
+      onStatus: logStatus,
+      forceReset,
+    });
 
     if (initialization.installedDependencies) {
       process.stdout.write(
@@ -30,7 +35,9 @@ async function run(): Promise<void> {
     throw new Error(`Unknown flag "${command}". Try "sweepi --help".`);
   }
 
-  const lintExitCode = await runSweepi(command);
+  const lintExitCode = await runSweepi(command, {
+    onStatus: logStatus,
+  });
   process.exitCode = lintExitCode;
 }
 
@@ -40,13 +47,37 @@ function printHelp(): void {
   sweepi init
 
 Commands:
-  <project-dir>    Initialize if required, then run eslint using ~/.sweepi
-  init    Create ~/.sweepi and install rules
+  <project-dir>    Run eslint using ~/.sweepi (run "sweepi init" first)
+  init [--force, -f]    Create ~/.sweepi and install rules
+
+Tip:
+  For faster repeated runs, install globally: npm install --global sweepi
 `);
 }
 
-run().catch((error: unknown) => {
+function logStatus(message: string): void {
+  process.stdout.write(`${message}\n`);
+}
+
+function parseForceResetOption(argumentsList: string[]): boolean {
+  let forceReset = false;
+
+  for (const argument of argumentsList) {
+    if (argument === '--force' || argument === '-f') {
+      forceReset = true;
+      continue;
+    }
+
+    throw new Error(`Unknown init option "${argument}". Try "sweepi --help".`);
+  }
+
+  return forceReset;
+}
+
+try {
+  await run();
+} catch (error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${message}\n`);
   process.exitCode = 1;
-});
+}

@@ -4,13 +4,29 @@ Sweepi is a personal project for enforcing LLM guardrails through linting.
 
 The goal is to keep AI-assisted code generation aligned with a specific set of architectural and API design constraints, without forcing those dependencies into every target repository or their maintainers.
 
+## Install
+
+```bash
+npm install --global sweepi
+```
+
+For repeated audits, a global install is faster than `npx`.
+
 ## Quick start
 
 ```bash
+sweepi init
+sweepi ./path/to/project
+```
+
+If you do not want a global install, you can run:
+
+```bash
+npx sweepi init
 npx sweepi ./path/to/project
 ```
 
-The first run initializes a private toolchain in `~/.sweepi`, then lints the target project.
+Initialize Sweepi once to create `~/.sweepi`, then run Sweepi against any project directory.
 
 ## Guarantees
 
