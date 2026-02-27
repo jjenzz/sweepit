@@ -17,7 +17,15 @@ Prefer event-driven APIs, controlled contracts, or explicit compound composition
 
 ## Options
 
-This rule has no options.
+```json
+{
+  "ignore": ["asChild"],
+  "ignoreNativeBooleanProps": true
+}
+```
+
+- `ignore` (`string[]`): prop names to skip.
+- `ignoreNativeBooleanProps` (`boolean`): skip native HTML/React boolean attributes (for example `disabled`, `checked`, `required`, `multiple`).
 
 ## Examples
 

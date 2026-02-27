@@ -44,6 +44,23 @@ describe('no-boolean-capability-props', () => {
           onVisibleToggle: (value: boolean) => void;
         }
       `,
+      {
+        code: `
+          interface SlotProps {
+            asChild?: boolean;
+          }
+        `,
+        options: [{ ignore: ['asChild'] }],
+      },
+      {
+        code: `
+          interface InputProps {
+            disabled?: boolean;
+            checked?: boolean;
+          }
+        `,
+        options: [{ ignoreNativeBooleanProps: true }],
+      },
       `
         interface FeatureFlags {
           open: boolean;
@@ -116,6 +133,19 @@ describe('no-boolean-capability-props', () => {
           {
             messageId: 'noBooleanCapabilityProp',
             data: { prop: 'isOpen', handlerPrefix: 'onIsOpen' },
+          },
+        ],
+      },
+      {
+        code: `
+          interface InputProps {
+            disabled?: boolean;
+          }
+        `,
+        errors: [
+          {
+            messageId: 'noBooleanCapabilityProp',
+            data: { prop: 'disabled', handlerPrefix: 'onDisabled' },
           },
         ],
       },

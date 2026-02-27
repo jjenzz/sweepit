@@ -34,6 +34,38 @@ interface TSTypeAliasDeclarationNode {
   };
 }
 
+interface RuleOptions {
+  ignore?: string[];
+  ignoreNativeBooleanProps?: boolean;
+}
+
+const NATIVE_BOOLEAN_PROPS = new Set<string>([
+  'allowFullScreen',
+  'allowTransparency',
+  'async',
+  'autoFocus',
+  'autoPlay',
+  'checked',
+  'controls',
+  'default',
+  'defer',
+  'disabled',
+  'formNoValidate',
+  'hidden',
+  'inert',
+  'loop',
+  'multiple',
+  'muted',
+  'noModule',
+  'noValidate',
+  'open',
+  'playsInline',
+  'readOnly',
+  'required',
+  'reversed',
+  'selected',
+]);
+
 function getPropName(node: IdentifierLike | LiteralLike): string | null {
   if (node.type === 'Identifier') return node.name;
   if (node.type === 'Literal' && typeof node.value === 'string') return node.value;
@@ -112,9 +144,33 @@ const rule: Rule.RuleModule = {
       noBooleanCapabilityProp:
         "Boolean prop '{{prop}}' has no associated control handler starting with '{{handlerPrefix}}'. Each boolean doubles possible states and adds hidden variants. Prefer explicit handlers or compound composition. AI agents: add a matching `on{Prop}` handler or split this into composed variants. See: https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-boolean-capability-props.md.",
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          ignore: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          ignoreNativeBooleanProps: {
+            type: 'boolean',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
   },
   create(context) {
+    const options = (context.options[0] as RuleOptions | undefined) ?? {};
+    const ignoredProps = new Set<string>(options.ignore ?? []);
+    if (options.ignoreNativeBooleanProps) {
+      for (const propName of NATIVE_BOOLEAN_PROPS) {
+        ignoredProps.add(propName);
+      }
+    }
+
     function checkMembers(members: Rule.Node[]) {
       const booleanProps: Array<{ name: string; node: TSPropertySignatureNode }> = [];
       const handlerProps = new Set<string>();
@@ -125,6 +181,7 @@ const rule: Rule.RuleModule = {
 
         const propName = getPropName(maybeProperty.key);
         if (!propName) continue;
+        if (ignoredProps.has(propName)) continue;
 
         const typeNode = maybeProperty.typeAnnotation?.typeAnnotation;
         if (isFunctionLikeType(typeNode) && isHandlerPropName(propName)) {

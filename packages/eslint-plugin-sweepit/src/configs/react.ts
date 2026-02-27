@@ -58,7 +58,13 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'sweepit/no-array-props': 'error',
       'sweepit/no-prefixed-prop-bundles': 'error',
       'sweepit/no-optional-props-without-defaults': 'error',
-      'sweepit/no-boolean-capability-props': 'error',
+      'sweepit/no-boolean-capability-props': [
+        'error',
+        {
+          ignore: ['asChild'],
+          ignoreNativeBooleanProps: true,
+        },
+      ],
       'sweepit/max-custom-props': 'error',
       'sweepit/jsx-bem-compound-naming': 'error',
       'sweepit/jsx-compound-part-export-naming': 'error',
