@@ -32,6 +32,7 @@ Run Sweepi in either case:
 - Preserve the documented architectural constraints (compound parts, event-driven APIs, explicit props, etc.).
 - Prefer changes that align with the rule's reasoning section.
 - If a fix has trade-offs, choose the option that best matches the rule docs and explain the choice.
+- Never trade behavior-preserving architecture for a smaller lint-only diff.
 - Do not suppress or ignore rules by default.
 - A rule may be ignored only when a human-in-the-loop (HITL) explicitly authorizes that specific exception.
 

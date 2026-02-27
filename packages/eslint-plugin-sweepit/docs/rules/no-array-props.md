@@ -66,6 +66,13 @@ interface MenuOptions {
 3. If list state must be shared across composed parts, keep it in private component context instead of prop contracts.
 4. Keep array-shaped data at higher ownership boundaries, not component contracts.
 
+### Composition Guardrail
+
+- Using `children` is valid only when the component exposes meaningful compound parts.
+- Do not replace array props with a bare `children` passthrough as the only API.
+- Preserve prior capability: the previous repeated structure must still be expressible through named parts.
+- If a refactor cannot preserve behavior with compound parts, stop and request approval before changing API semantics.
+
 ```ts
 // before
 interface TagListProps {

@@ -26,6 +26,17 @@ When fixing lint or rule violations, do not edit code until all required pre-edi
 - If API changes are unavoidable, clearly mark them and request approval first.
 - Do not suppress or disable lint rules unless explicitly approved.
 
+## Conflict Resolution Order
+
+When constraints conflict, apply this priority:
+
+1. Preserve runtime behavior and user-visible capability.
+2. Preserve project architectural conventions from user/rule docs.
+3. Satisfy lint-rule compliance.
+4. Minimize diff size.
+
+If a lower-priority fix would violate a higher-priority constraint, choose the higher-priority path and explain why.
+
 ## Required Response Template (Before Any Edit)
 
 ### Lint Rules Detected

@@ -92,6 +92,13 @@ interface UserOptions {
 3. If object state must be shared across composed parts, keep it in private component context instead of prop contracts.
 4. Keep object-shaped data at ownership boundaries, not leaf component APIs.
 
+### Composition Guardrail
+
+- Using `children` is valid only when the component exposes meaningful compound parts.
+- Do not replace object props with a bare `children` passthrough as the only API.
+- Preserve prior capability: behavior previously driven by object data must remain expressible through named parts.
+- If a refactor cannot preserve behavior with compound parts, stop and request approval before changing API semantics.
+
 ```ts
 // before
 interface UserRowProps {
