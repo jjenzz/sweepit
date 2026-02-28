@@ -18,15 +18,10 @@ By default, both contexts are enabled.
 
 ### Iterator factory allowance
 
-When `allowIteratorFactories` is `true` (default), top-level iterator factory calls are allowed in `for...of` right-hand expressions.
+When `allowIteratorFactories` is `true` (default), top-level calls in `for...of` right-hand expressions are allowed when the TypeScript type checker resolves the call result to an iterable type (has `[Symbol.iterator]`).
 
-Supported iterator factories:
-
-- `Object.keys(...)`
-- `Object.values(...)`
-- `Object.entries(...)`
-- `Array.from(...)`
-- member methods named `.keys()`, `.values()`, `.entries()`
+This is type-based behavior, not a hard-coded callee-name allowlist.
+If type information is unavailable, the rule falls back to allowing top-level `for...of` calls when this option is enabled.
 
 ## Options
 
@@ -63,6 +58,7 @@ Default:
 - Default: `true`
 
 Controls whether supported iterator factory calls are allowed for top-level `for...of` sources.
+Controls whether type-checked iterable-producing calls are allowed for top-level `for...of` sources.
 
 ## Examples
 
@@ -70,11 +66,11 @@ Controls whether supported iterator factory calls are allowed for top-level `for
 
 ```ts
 for (let i = 0; i < getLimit(); i += 1) {
-  consume(i);
+  // ...
 }
 
 for (const report of getReports()) {
-  consume(report);
+  // ...
 }
 
 consume(formatValue(input));
@@ -86,12 +82,12 @@ consume(buildValue(loadValue()));
 ```ts
 const limit = getLimit();
 for (let i = 0; i < limit; i += 1) {
-  consume(i);
+  // ...
 }
 
 const reports = getReports();
 for (const report of reports) {
-  consume(report);
+  // ...
 }
 
 const formattedValue = formatValue(input);
@@ -106,7 +102,7 @@ With `allowIteratorFactories: true`:
 
 ```ts
 for (const [key, value] of Object.entries(record)) {
-  consume(key, value);
+  // ...
 }
 ```
 

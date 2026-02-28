@@ -41,6 +41,14 @@ describe('no-inline-call-expressions', () => {
         consume(entry);
       }
       `,
+      `
+      function createIterable(): Iterable<string> {
+        return new Set(['value']);
+      }
+      for (const value of createIterable()) {
+        consume(value);
+      }
+      `,
       {
         code: `
         for (const entry of getEntries()) {

@@ -1,13 +1,7 @@
 import type { Rule } from 'eslint';
+import type ts from 'typescript';
 
 const DEFAULT_CONTEXTS: ReadonlyArray<RuleContextName> = ['for-header', 'call-arg'];
-const ITERATOR_FACTORY_CALLEES = new Set<string>([
-  'Object.keys',
-  'Object.values',
-  'Object.entries',
-  'Array.from',
-]);
-const ITERATOR_MEMBER_METHODS = new Set<string>(['keys', 'values', 'entries']);
 
 type RuleContextName = 'for-header' | 'call-arg';
 
@@ -24,111 +18,125 @@ function parseOptions(option: RuleOptions | undefined): {
   contexts: ReadonlySet<RuleContextName>;
   allowIteratorFactories: boolean;
 } {
-  const contexts = new Set<RuleContextName>();
-  for (const context of option?.contexts ?? DEFAULT_CONTEXTS) {
-    if (isContextName(context)) {
-      contexts.add(context);
-    }
-  }
-
-  if (contexts.size === 0) {
-    for (const context of DEFAULT_CONTEXTS) {
-      contexts.add(context);
-    }
-  }
+  const contexts = new Set<RuleContextName>(
+    (option?.contexts ?? DEFAULT_CONTEXTS).filter((context) => isContextName(context)),
+  );
+  const contextSet = contexts.size > 0 ? contexts : new Set<RuleContextName>(DEFAULT_CONTEXTS);
 
   return {
-    contexts,
+    contexts: contextSet,
     allowIteratorFactories:
       typeof option?.allowIteratorFactories === 'boolean' ? option.allowIteratorFactories : true,
   };
 }
 
-function getMemberExpressionName(node: Rule.Node | null | undefined): string | null {
-  if (!node || node.type !== 'MemberExpression') return null;
-  const expression = node as unknown as {
-    object?: Rule.Node;
-    property?: Rule.Node;
-    computed?: boolean;
-  };
-  if (expression.computed) return null;
-  if (!expression.object || !expression.property) return null;
-  if (expression.property.type !== 'Identifier') return null;
-  if (expression.object.type !== 'Identifier') return null;
-  const objectName = (expression.object as unknown as { name?: string }).name;
-  const propertyName = (expression.property as unknown as { name?: string }).name;
-  if (!objectName || !propertyName) return null;
-  return `${objectName}.${propertyName}`;
+function getParent(node: Rule.Node): Rule.Node | null {
+  const parent = (node as Rule.Node & { parent?: Rule.Node }).parent;
+  return parent ?? null;
 }
 
-function getCalleeName(node: Rule.Node | null | undefined): string | null {
-  if (!node) return null;
-  if (node.type === 'Identifier') {
-    return (node as unknown as { name?: string }).name ?? null;
-  }
-  if (node.type === 'MemberExpression') {
-    return getMemberExpressionName(node);
-  }
-  return null;
+function hasCallExpressionArguments(node: Rule.Node): boolean {
+  return 'arguments' in (node as object);
 }
 
-function getMemberPropertyName(node: Rule.Node | null | undefined): string | null {
-  if (!node || node.type !== 'MemberExpression') return null;
-  const expression = node as unknown as { property?: Rule.Node; computed?: boolean };
-  if (expression.computed || !expression.property) return null;
-  if (expression.property.type !== 'Identifier') return null;
-  return (expression.property as unknown as { name?: string }).name ?? null;
-}
-
-function isIteratorFactoryCall(node: Rule.Node): boolean {
-  if (node.type !== 'CallExpression') return false;
-  const callExpression = node as unknown as { callee?: Rule.Node };
-  const callee = callExpression.callee;
-  const calleeName = getCalleeName(callee);
-  if (calleeName && ITERATOR_FACTORY_CALLEES.has(calleeName)) {
-    return true;
-  }
-  const memberName = getMemberPropertyName(callee);
-  if (memberName && ITERATOR_MEMBER_METHODS.has(memberName)) {
-    return true;
+function isCallExpressionArgument(node: Rule.Node): boolean {
+  let current: Rule.Node | null = node;
+  let parent = current ? getParent(current) : null;
+  while (current && parent) {
+    if (parent.type === 'CallExpression' && hasCallExpressionArguments(parent)) {
+      const callParent = parent as Rule.Node & { arguments?: Rule.Node[] };
+      if ((callParent.arguments ?? []).includes(current)) {
+        return true;
+      }
+    }
+    current = parent;
+    parent = getParent(current);
   }
   return false;
 }
 
-function collectCallExpressions(
-  node: Rule.Node | null | undefined,
-  seen: WeakSet<object>,
-  calls: Rule.Node[],
-): void {
-  if (!node || typeof node !== 'object') return;
-  if (seen.has(node as unknown as object)) return;
-  seen.add(node as unknown as object);
+function isForStatementHeaderCall(node: Rule.Node): boolean {
+  let current: Rule.Node | null = node;
+  while (current) {
+    const parent = getParent(current);
+    if (!parent) return false;
 
-  if (node.type === 'CallExpression') {
-    calls.push(node);
-  }
-
-  const record = node as unknown as Record<string, unknown>;
-  for (const entry of Object.entries(record)) {
-    const key = entry[0];
-    const value = entry[1];
-    if (key === 'parent') continue;
-    if (!value) continue;
-    if (Array.isArray(value)) {
-      for (const entry of value) {
-        if (entry && typeof entry === 'object' && 'type' in (entry as object)) {
-          collectCallExpressions(entry as Rule.Node, seen, calls);
-        }
+    if (parent.type === 'ForStatement') {
+      const forParent = parent as Rule.Node & {
+        init?: Rule.Node | null;
+        test?: Rule.Node | null;
+        update?: Rule.Node | null;
+      };
+      if (
+        forParent.init === current ||
+        forParent.test === current ||
+        forParent.update === current
+      ) {
+        return true;
       }
-      continue;
     }
-    if (typeof value === 'object' && 'type' in (value as object)) {
-      collectCallExpressions(value as Rule.Node, seen, calls);
+
+    if (parent.type === 'ForOfStatement' || parent.type === 'ForInStatement') {
+      const forXParent = parent as Rule.Node & { right?: Rule.Node | null };
+      if (forXParent.right === current) {
+        return true;
+      }
     }
+
+    current = parent;
   }
+  return false;
 }
 
-function getUniqueNodeKey(node: Rule.Node): string {
+function getTypeChecker(context: Readonly<Rule.RuleContext>): ts.TypeChecker | null {
+  const contextWithServices = context as Readonly<Rule.RuleContext> & {
+    parserServices?: {
+      program?: ts.Program;
+      esTreeNodeToTSNodeMap?: WeakMap<object, ts.Node>;
+    };
+  };
+  const services = contextWithServices.parserServices;
+  const program = services?.program;
+  return program ? program.getTypeChecker() : null;
+}
+
+function getTsNodeForEstreeNode(
+  context: Readonly<Rule.RuleContext>,
+  node: Rule.Node,
+): ts.Node | null {
+  const contextWithServices = context as Readonly<Rule.RuleContext> & {
+    parserServices?: {
+      esTreeNodeToTSNodeMap?: WeakMap<object, ts.Node>;
+    };
+  };
+  const services = contextWithServices.parserServices;
+  const tsNodeMap = services?.esTreeNodeToTSNodeMap;
+  if (!tsNodeMap) return null;
+  return tsNodeMap.get(node as object) ?? null;
+}
+
+function hasIteratorProperty(type: Readonly<ts.Type>, checker: Readonly<ts.TypeChecker>): boolean {
+  const properties = checker.getPropertiesOfType(checker.getApparentType(type));
+  for (const property of properties) {
+    if (property.getName() === '__@iterator') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isTypeIterable(type: Readonly<ts.Type>, checker: Readonly<ts.TypeChecker>): boolean {
+  if (hasIteratorProperty(type, checker)) return true;
+  if (type.isUnion()) {
+    return type.types.every((member) => isTypeIterable(member, checker));
+  }
+  if (type.isIntersection()) {
+    return type.types.some((member) => isTypeIterable(member, checker));
+  }
+  return false;
+}
+
+function getNodeKey(node: Rule.Node): string {
   const typedNode = node as unknown as {
     range?: [number, number];
     loc?: { start: { line: number; column: number } };
@@ -138,6 +146,25 @@ function getUniqueNodeKey(node: Rule.Node): string {
   const line = typedNode.loc?.start.line ?? -1;
   const column = typedNode.loc?.start.column ?? -1;
   return `${line}:${column}`;
+}
+
+function shouldAllowTopLevelForOfCall(
+  node: Rule.Node,
+  context: Readonly<Rule.RuleContext>,
+  allowIteratorFactories: boolean,
+): boolean {
+  if (!allowIteratorFactories) return false;
+  const parent = getParent(node);
+  if (!parent || parent.type !== 'ForOfStatement') return false;
+  const forOfParent = parent as Rule.Node & { right?: Rule.Node | null };
+  if (forOfParent.right !== node) return false;
+
+  const checker = getTypeChecker(context);
+  if (!checker) return true;
+  const tsNode = getTsNodeForEstreeNode(context, node);
+  if (!tsNode) return true;
+  const returnType = checker.getTypeAtLocation(tsNode);
+  return isTypeIterable(returnType, checker);
 }
 
 const rule: Rule.RuleModule = {
@@ -172,70 +199,50 @@ const rule: Rule.RuleModule = {
       noCallArg: 'Extract this function call into a variable before passing it as an argument.',
     },
   },
-  create(context) {
+  create(context: Readonly<Rule.RuleContext>) {
     const parsedOptions = parseOptions(context.options[0] as RuleOptions | undefined);
     const reportedCallKeys = new Set<string>();
 
-    function reportCallExpressions(
-      node: Rule.Node | null | undefined,
-      messageId: 'noCallInForHeader' | 'noCallArg',
-      options?: {
-        allowTopLevelIteratorFactory?: boolean;
-      },
-    ): void {
-      if (!node) return;
-      const calls: Rule.Node[] = [];
-      collectCallExpressions(node, new WeakSet<object>(), calls);
-
-      for (const call of calls) {
-        if (
-          options?.allowTopLevelIteratorFactory &&
-          call === node &&
-          parsedOptions.allowIteratorFactories &&
-          isIteratorFactoryCall(call)
-        ) {
-          continue;
-        }
-
-        const key = getUniqueNodeKey(call);
-        if (reportedCallKeys.has(key)) continue;
-        reportedCallKeys.add(key);
-        context.report({
-          node: call,
-          messageId,
-        });
-      }
+    function reportOnce(node: Rule.Node, messageId: 'noCallInForHeader' | 'noCallArg'): void {
+      const key = getNodeKey(node);
+      if (reportedCallKeys.has(key)) return;
+      reportedCallKeys.add(key);
+      context.report({ node, messageId });
     }
 
     return {
       ForStatement(node: Rule.Node) {
         if (!parsedOptions.contexts.has('for-header')) return;
-        const forStatement = node as unknown as {
+        const forStatement = node as Rule.Node & {
           init?: Rule.Node | null;
           test?: Rule.Node | null;
           update?: Rule.Node | null;
         };
-        reportCallExpressions(forStatement.init, 'noCallInForHeader');
-        reportCallExpressions(forStatement.test, 'noCallInForHeader');
-        reportCallExpressions(forStatement.update, 'noCallInForHeader');
-      },
-      ForOfStatement(node: Rule.Node) {
-        if (!parsedOptions.contexts.has('for-header')) return;
-        const forOfStatement = node as unknown as { right?: Rule.Node | null };
-        reportCallExpressions(forOfStatement.right, 'noCallInForHeader', {
-          allowTopLevelIteratorFactory: true,
-        });
-      },
-      ForInStatement(node: Rule.Node) {
-        if (!parsedOptions.contexts.has('for-header')) return;
-        const forInStatement = node as unknown as { right?: Rule.Node | null };
-        reportCallExpressions(forInStatement.right, 'noCallInForHeader');
+        const headerNodes = [forStatement.init, forStatement.test, forStatement.update].filter(
+          (headerNode): headerNode is Rule.Node => Boolean(headerNode),
+        );
+        for (const headerNode of headerNodes) {
+          if (headerNode.type === 'CallExpression') {
+            reportOnce(headerNode, 'noCallInForHeader');
+          }
+        }
       },
       CallExpression(node: Rule.Node) {
-        if (!parsedOptions.contexts.has('call-arg')) return;
-        const callExpression = node as unknown as { arguments?: Rule.Node[] };
-        for (const argument of callExpression.arguments ?? []) {
-          reportCallExpressions(argument, 'noCallArg');
+        const callExpression = node as Rule.Node & { parent?: Rule.Node };
+
+        if (parsedOptions.contexts.has('for-header') && isForStatementHeaderCall(callExpression)) {
+          const allowTopLevelForOfCall = shouldAllowTopLevelForOfCall(
+            callExpression,
+            context,
+            parsedOptions.allowIteratorFactories,
+          );
+          if (!allowTopLevelForOfCall) {
+            reportOnce(callExpression, 'noCallInForHeader');
+          }
+        }
+
+        if (parsedOptions.contexts.has('call-arg') && isCallExpressionArgument(callExpression)) {
+          reportOnce(callExpression, 'noCallArg');
         }
       },
     };
