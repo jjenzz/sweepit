@@ -45,7 +45,7 @@ The exported core config enables:
 - `no-param-reassign` with `{ props: true }`
 - `prefer-const`
 - `@typescript-eslint/switch-exhaustiveness-check`
-- `sweepit/no-let-closure-mutation`
+- `sweepit/no-external-binding-mutation`
 - `sweepit/complexity` with `{ max: 5, variant: 'modified' }`
 
 ## What `configs.react` includes
@@ -111,7 +111,7 @@ export default [
 | [`sweepit/no-prefixed-prop-bundles`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-prefixed-prop-bundles.md)                     | Treats grouped prefixed prop declarations (for example `userName/userEmail/userRole`) as a composition-pressure signal once they hit a configured threshold (default `3`). |
 | [`sweepit/no-optional-props-without-defaults`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-optional-props-without-defaults.md) | Disallows optional component props unless defaulted at the component boundary; type info improves optional-prop detection accuracy.                                        |
 | [`sweepit/no-boolean-capability-props`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-boolean-capability-props.md)               | Disallows boolean props without associated control handlers (for example `open` without `onOpenChange`) in component contracts.                                            |
-| [`sweepit/no-let-closure-mutation`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-let-closure-mutation.md)                       | Disallows reassigning outer `let` variables from nested functions/closures.                                                                                                |
+| [`sweepit/no-external-binding-mutation`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-external-binding-mutation.md)             | Enforces function-level mutation purity by disallowing mutation of outer bindings/parameters and requiring readonly typing for method calls on those bindings.             |
 | [`sweepit/max-custom-props`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/max-custom-props.md)                                     | Limits custom prop count in `*Props` contracts (default max `8`) to surface composition pressure early.                                                                    |
 | [`sweepit/jsx-bem-compound-naming`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/jsx-bem-compound-naming.md)                       | Enforces block-prefixed naming for exported compound component parts.                                                                                                      |
 | [`sweepit/jsx-compound-part-export-naming`](https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/jsx-compound-part-export-naming.md)       | Enforces `Root`/part alias export naming for compound component modules.                                                                                                   |

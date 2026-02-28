@@ -35,7 +35,7 @@ function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'prefer-const': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
-      'sweepit/no-let-closure-mutation': 'error',
+      'sweepit/no-external-binding-mutation': 'error',
       'sweepit/complexity': ['error', { max: 5, variant: 'modified' }],
     },
   };
