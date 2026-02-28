@@ -39,62 +39,86 @@ function getCustomJsxName(node: Rule.Node | null | undefined): string | null {
   return null;
 }
 
+function isJsxElementOrFragment(node: Rule.Node | null | undefined): boolean {
+  if (!node) return false;
+  const typedNode = node as unknown as { type?: string };
+  return typedNode.type === 'JSXElement' || typedNode.type === 'JSXFragment';
+}
+
+function getJsxChildren(node: Rule.Node): Rule.Node[] {
+  const typedNode = node as unknown as { type?: string; children?: Rule.Node[] };
+  if (typedNode.type === 'JSXFragment') {
+    return typedNode.children ?? [];
+  }
+
+  if (typedNode.type === 'JSXElement') {
+    const element = node as unknown as { children?: Rule.Node[] };
+    return element.children ?? [];
+  }
+
+  return [];
+}
+
+function getSelfClosingCustomName(node: Rule.Node): string | null {
+  const typedNode = node as unknown as { type?: string };
+  if (typedNode.type !== 'JSXElement') return null;
+  const element = node as unknown as {
+    openingElement: { name: Rule.Node; selfClosing?: boolean };
+  };
+  if (!element.openingElement.selfClosing) return null;
+  return getCustomJsxName(element.openingElement.name);
+}
+
 function collectSelfClosingCustomJsxNames(
   node: Rule.Node | null | undefined,
   names: Set<string>,
 ): void {
-  if (!node) return;
-  const typedNode = node as unknown as { type?: string };
-
-  if (typedNode.type === 'JSXElement') {
-    const element = node as unknown as {
-      openingElement: { name: Rule.Node; selfClosing?: boolean };
-      children?: Rule.Node[];
-    };
-    if (element.openingElement.selfClosing) {
-      const customName = getCustomJsxName(element.openingElement.name);
-      if (customName) names.add(customName);
-    }
-
-    for (const child of element.children ?? []) {
-      const typedChild = child as unknown as { type?: string };
-      if (typedChild.type !== 'JSXElement' && typedChild.type !== 'JSXFragment') continue;
-      collectSelfClosingCustomJsxNames(child, names);
-    }
-    return;
+  if (!isJsxElementOrFragment(node)) return;
+  const collectedNames = names;
+  const selfClosingCustomName = getSelfClosingCustomName(node);
+  if (selfClosingCustomName) {
+    collectedNames.add(selfClosingCustomName);
   }
 
-  if (typedNode.type === 'JSXFragment') {
-    const fragment = node as unknown as { children?: Rule.Node[] };
-    for (const child of fragment.children ?? []) {
-      const typedChild = child as unknown as { type?: string };
-      if (typedChild.type !== 'JSXElement' && typedChild.type !== 'JSXFragment') continue;
-      collectSelfClosingCustomJsxNames(child, names);
-    }
+  for (const child of getJsxChildren(node)) {
+    if (!isJsxElementOrFragment(child)) continue;
+    collectSelfClosingCustomJsxNames(child, collectedNames);
   }
+}
+
+function collectSelfClosingCustomJsxNamesFromReturn(
+  statement: Rule.Node,
+  names: Set<string>,
+): void {
+  if (statement.type !== 'ReturnStatement') return;
+  const returnStatement = statement as unknown as { argument?: Rule.Node | null };
+  const argument = returnStatement.argument;
+  if (!isJsxElementOrFragment(argument)) return;
+  collectSelfClosingCustomJsxNames(argument, names);
 }
 
 function getSelfClosingCustomChildren(body: Rule.Node | null | undefined): Set<string> {
   const names = new Set<string>();
   if (!body) return names;
-  const typedBody = body as unknown as { type?: string };
-
-  if (typedBody.type === 'JSXElement' || typedBody.type === 'JSXFragment') {
+  if (isJsxElementOrFragment(body)) {
     collectSelfClosingCustomJsxNames(body, names);
-  } else if (typedBody.type === 'BlockStatement') {
-    const block = body as unknown as { body?: Rule.Node[] };
-    for (const statement of block.body ?? []) {
-      if (statement.type !== 'ReturnStatement') continue;
-      const returnStatement = statement as unknown as { argument?: Rule.Node | null };
-      const argument = returnStatement.argument;
-      if (!argument) continue;
-      const typedArgument = argument as unknown as { type?: string };
-      if (typedArgument.type !== 'JSXElement' && typedArgument.type !== 'JSXFragment') continue;
-      collectSelfClosingCustomJsxNames(argument, names);
-    }
+    return names;
+  }
+
+  const typedBody = body as unknown as { type?: string; body?: Rule.Node[] };
+  if (typedBody.type !== 'BlockStatement') {
+    return names;
+  }
+
+  for (const statement of typedBody.body ?? []) {
+    collectSelfClosingCustomJsxNamesFromReturn(statement, names);
   }
 
   return names;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && value >= 1 && value % 1 === 0;
 }
 
 function computeLongestChain(
@@ -103,37 +127,45 @@ function computeLongestChain(
   memo: Map<string, string[]>,
   visiting: Set<string>,
 ): string[] {
-  const cached = memo.get(componentName);
+  const memoByComponent = memo;
+  const activeComponents = visiting;
+  const knownComponents = components;
+  const cached = memoByComponent.get(componentName);
   if (cached != null) return cached;
 
-  if (visiting.has(componentName)) {
+  if (activeComponents.has(componentName)) {
     return [componentName];
   }
-  visiting.add(componentName);
+  activeComponents.add(componentName);
 
-  const component = components.get(componentName);
+  const component = knownComponents.get(componentName);
   if (!component) {
-    memo.set(componentName, [componentName]);
-    visiting.delete(componentName);
+    memoByComponent.set(componentName, [componentName]);
+    activeComponents.delete(componentName);
     return [componentName];
   }
 
   if (component.selfClosingCustomChildren.size === 0) {
     const base = [componentName];
-    memo.set(componentName, base);
-    visiting.delete(componentName);
+    memoByComponent.set(componentName, base);
+    activeComponents.delete(componentName);
     return base;
   }
 
   let bestChildChain: string[] = [];
   for (const childName of component.selfClosingCustomChildren) {
-    if (!components.has(childName)) continue;
-    const childChain = computeLongestChain(childName, components, memo, visiting);
+    if (!knownComponents.has(childName)) continue;
+    const childChain = computeLongestChain(
+      childName,
+      knownComponents,
+      memoByComponent,
+      activeComponents,
+    );
     if (childChain.length > bestChildChain.length) bestChildChain = childChain;
   }
   const fullChain = [componentName, ...bestChildChain];
-  memo.set(componentName, fullChain);
-  visiting.delete(componentName);
+  memoByComponent.set(componentName, fullChain);
+  activeComponents.delete(componentName);
   return fullChain;
 }
 
@@ -163,12 +195,12 @@ const rule: Rule.RuleModule = {
     ],
   },
   create(context) {
+    const report = context.report.bind(context);
     const rawOptions = (context.options[0] as RuleOptions | undefined) ?? {};
     const allowedChainDepthRaw = rawOptions.allowedChainDepth;
-    const allowedChainDepth =
-      Number.isInteger(allowedChainDepthRaw) && (allowedChainDepthRaw ?? 0) >= 1
-        ? (allowedChainDepthRaw as number)
-        : DEFAULT_ALLOWED_CHAIN_DEPTH;
+    const allowedChainDepth = isPositiveInteger(allowedChainDepthRaw)
+      ? allowedChainDepthRaw
+      : DEFAULT_ALLOWED_CHAIN_DEPTH;
     const minReportedChainDepth = allowedChainDepth + 1;
 
     const components = new Map<string, ComponentRecord>();
@@ -223,7 +255,7 @@ const rule: Rule.RuleModule = {
           const depth = chain.length;
           if (depth < minReportedChainDepth) continue;
 
-          context.report({
+          report({
             node: component.node,
             messageId: 'deepParentTree',
             data: {
