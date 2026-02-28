@@ -64,7 +64,7 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Disallow ReactNode/ReactElement-typed props except children/render.',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-element-props.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-element-props.md',
     },
     messages: {
       noElementProps:

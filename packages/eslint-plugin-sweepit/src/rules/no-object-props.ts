@@ -79,7 +79,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow object-typed members in TypeScript type definitions whose name ends with Props',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-object-props.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-object-props.md',
     },
     messages: {
       noObjectProps:

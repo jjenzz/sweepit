@@ -143,7 +143,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Encourage flatter parent component chains by reporting self-closing custom component handoffs deeper than allowedChainDepth',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-flat-owner-tree.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/jsx-flat-owner-tree.md',
     },
     messages: {
       deepParentTree:

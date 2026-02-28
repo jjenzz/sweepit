@@ -62,7 +62,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Limit the number of custom props in component prop contracts to encourage composition',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/max-custom-props.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/max-custom-props.md',
     },
     messages: {
       maxCustomProps:

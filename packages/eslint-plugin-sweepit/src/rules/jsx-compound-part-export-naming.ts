@@ -50,7 +50,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Enforce compound export aliasing from file-stem block and disallow runtime object export APIs',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-compound-part-export-naming.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/jsx-compound-part-export-naming.md',
     },
     messages: {
       requirePartAlias:

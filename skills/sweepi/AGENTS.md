@@ -10,10 +10,8 @@ When fixing lint or rule violations, do not edit code until all required pre-edi
 2. Fetch and read the official docs for each triggered rule.
 3. For each rule, provide:
    - Rule ID
-   - Doc URL
    - Key requirement(s) (quoted or precise paraphrase)
    - Planned code change mapped to the requirement(s)
-   - Confirmation that existing behavior is preserved
 4. If docs cannot be fetched or read, stop and ask for instructions. Do not make speculative fixes.
 5. Do not ask for explicit human approval before edits unless:
    - functionality may be lost,
@@ -50,7 +48,6 @@ If a lower-priority fix would violate a higher-priority constraint, choose the h
 - **Doc URL:** `<url>`
 - **Key requirement(s):** `<quote/paraphrase>`
 - **Planned compliant fix:** `<what will change>`
-- **Behavior preserved:** `yes/no` + `<explanation>`
 
 ### Edit Safety Check
 

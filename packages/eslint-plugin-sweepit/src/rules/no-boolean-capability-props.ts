@@ -138,7 +138,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow boolean component props without associated control handlers in prop contracts',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-boolean-capability-props.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-boolean-capability-props.md',
     },
     messages: {
       noBooleanCapabilityProp:

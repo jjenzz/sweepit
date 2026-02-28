@@ -34,7 +34,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Forbid util/helper functions prefixed with set*; allow React state setter identifiers from useState tuple destructuring',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-set-prefix-utils.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-set-prefix-utils.md',
     },
     messages: {
       noSetPrefixUtil:

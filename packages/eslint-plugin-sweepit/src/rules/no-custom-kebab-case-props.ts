@@ -72,7 +72,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow custom kebab-case JSX props (allows aria-* and data-* by default with configurable additions)',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-custom-kebab-case-props.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-custom-kebab-case-props.md',
     },
     messages: {
       noCustomKebab: "Custom kebab-case prop '{{prop}}' is not allowed. Use '{{suggestion}}').",

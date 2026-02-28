@@ -132,7 +132,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow bundles of similarly-prefixed prop type declarations that suggest over-grouped component APIs',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-prefixed-prop-bundles.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-prefixed-prop-bundles.md',
     },
     messages: {
       noPrefixedPropBundle:

@@ -32,7 +32,7 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Disallow TitleCase JSX props',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-title-case-props.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-title-case-props.md',
     },
     messages: {
       noTitleCase: "Prop '{{prop}}' uses TitleCase. Use camelCase instead (e.g. {{suggestion}}).",

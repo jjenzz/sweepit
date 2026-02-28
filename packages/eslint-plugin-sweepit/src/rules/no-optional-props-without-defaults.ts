@@ -157,7 +157,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow authored optional component props unless they are defaulted at the component boundary',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-optional-props-without-defaults.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-optional-props-without-defaults.md',
     },
     messages: {
       noOptionalPropWithoutDefault:

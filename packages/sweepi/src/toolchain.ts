@@ -7,6 +7,17 @@ import { fileURLToPath } from 'node:url';
 const TOOLCHAIN_DIR_NAME = '.sweepi';
 const TOOLCHAIN_PACKAGE_JSON_NAME = 'package.json';
 const TOOLCHAIN_CONFIG_NAME = 'eslint.config.mjs';
+const SKILL_METADATA_NAME = 'metadata.json';
+const SKILL_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const SKILL_INSTALL_ARGS = [
+  'skills',
+  'add',
+  'jjenzz/sweepi',
+  '--skill',
+  'sweepi',
+  '--global',
+  '--yes',
+];
 const MINIMUM_NODE_VERSION = {
   major: 22,
   minor: 13,
@@ -62,9 +73,14 @@ interface InitializeToolchainResult {
 interface RunSweepiOptions {
   homeDirectory?: string;
   runLintCommand?: (command: string, args: string[], cwd: string) => Promise<number>;
+  runSkillInstallCommand?: (command: string, args: string[], cwd: string) => Promise<void>;
   listChangedFiles?: (projectDirectory: string) => Promise<string[]>;
   onStatus?: (message: string) => void;
   all?: boolean;
+}
+
+interface SkillMetadata {
+  updatedAt: string;
 }
 
 async function initializeToolchain(
@@ -122,14 +138,10 @@ async function initializeToolchain(
     onStatus?.(`Reusing existing Sweepi toolchain in ${toolchainDirectory}`);
   }
 
-  onStatus?.('Installing Sweepi LLM skill...');
-  const runSkillInstallCommand = options.runSkillInstallCommand ?? runInstallCommandWithNpm;
-  await runSkillInstallCommand(
-    'npx',
-    ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--global', '--yes'],
-    toolchainDirectory,
-  );
-  onStatus?.('Installed Sweepi LLM skill');
+  await ensureSweepiSkillIsFresh(toolchainDirectory, {
+    runSkillInstallCommand: options.runSkillInstallCommand,
+    onStatus,
+  });
 
   return {
     toolchainDirectory,
@@ -171,6 +183,16 @@ async function runSweepi(
     throw new Error(
       `Sweepi toolchain is not initialized in ${toolchainDirectory}. Run "sweepi init" first.`,
     );
+  }
+
+  try {
+    await ensureSweepiSkillIsFresh(toolchainDirectory, {
+      runSkillInstallCommand: options.runSkillInstallCommand,
+      onStatus,
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    onStatus?.(`Warning: Failed to refresh Sweepi LLM skill. Continuing lint run.\n${message}`);
   }
 
   onStatus?.(`Using Sweepi toolchain in ${toolchainDirectory}`);
@@ -258,6 +280,49 @@ async function ensureFile(filePath: string, content: string): Promise<void> {
   if (!exists) {
     await fs.writeFile(filePath, content, 'utf8');
   }
+}
+
+async function ensureSweepiSkillIsFresh(
+  toolchainDirectory: string,
+  options: {
+    runSkillInstallCommand?: (command: string, args: string[], cwd: string) => Promise<void>;
+    onStatus?: (message: string) => void;
+  } = {},
+): Promise<void> {
+  const metadataPath = path.join(toolchainDirectory, SKILL_METADATA_NAME);
+  const metadata = await readSkillMetadata(metadataPath);
+
+  if (metadata !== null && !isSkillMetadataStale(metadata)) {
+    options.onStatus?.('Sweepi LLM skill is up to date');
+    return;
+  }
+
+  options.onStatus?.('Updating Sweepi LLM skill...');
+  const runSkillInstallCommand = options.runSkillInstallCommand ?? runInstallCommandWithNpm;
+  await runSkillInstallCommand('npx', SKILL_INSTALL_ARGS, toolchainDirectory);
+  await writeSkillMetadata(metadataPath, { updatedAt: new Date().toISOString() });
+  options.onStatus?.('Updated Sweepi LLM skill');
+}
+
+function isSkillMetadataStale(metadata: SkillMetadata): boolean {
+  const updatedAtTimestamp = Date.parse(metadata.updatedAt);
+  if (Number.isNaN(updatedAtTimestamp)) return true;
+  return Date.now() - updatedAtTimestamp > SKILL_UPDATE_INTERVAL_MS;
+}
+
+async function readSkillMetadata(filePath: string): Promise<SkillMetadata | null> {
+  try {
+    const text = await fs.readFile(filePath, 'utf8');
+    const parsed = JSON.parse(text) as { updatedAt?: unknown };
+    if (typeof parsed.updatedAt !== 'string') return null;
+    return { updatedAt: parsed.updatedAt };
+  } catch {
+    return null;
+  }
+}
+
+async function writeSkillMetadata(filePath: string, metadata: SkillMetadata): Promise<void> {
+  await fs.writeFile(`${filePath}`, `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
 }
 
 async function pathExists(filePath: string): Promise<boolean> {

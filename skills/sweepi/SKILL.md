@@ -22,8 +22,12 @@ Run Sweepi in either case:
    - If `sweepi` is not found, fallback to: `npx sweepi .`
 2. Parse all reported issues.
 3. Follow the hard-gate pre-edit process in local `AGENTS.md`.
-4. For each rule violation, open the rule docs in:
-   - `https://raw.githubusercontent.com/jjenzz/sweepi/main/packages/eslint-plugin-sweepit/docs/rules/<rule-id>.md`
+4. For each rule violation, open the rule docs in `./rules/<rule-id>.md` alongside this `SKILL.md`.
+   - If one does not exist locally, try:
+     - `https://raw.githubusercontent.com/eslint/refs/heads/main/lib/rules/<rule-id>.js`
+     - `https://raw.githubusercontent.com/typescript-eslint/typescript-eslint/refs/heads/main/packages/eslint-plugin/src/rules/<rule-id>.ts`
+     - `https://raw.githubusercontent.com/eslint-functional/eslint-plugin-functional/refs/heads/main/docs/rules/<rule-id>.md`
+     - `https://raw.githubusercontent.com/jsx-eslint/eslint-plugin-react/refs/heads/master/docs/rules/<rule-id>.md`
 5. Apply fixes that match the documented intent, not only a minimal syntax pass.
 6. Re-run `sweepi` until issues are resolved (or document blockers if resolution is impossible).
 

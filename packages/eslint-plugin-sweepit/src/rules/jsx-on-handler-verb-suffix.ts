@@ -151,7 +151,7 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Ensure on* handler prop names end with a verb (for example onValueChange).',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-on-handler-verb-suffix.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/jsx-on-handler-verb-suffix.md',
     },
     messages: {
       mustEndWithVerb:

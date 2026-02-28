@@ -100,7 +100,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Forbid JSX returned from non-component functions. Functions that return JSX should use PascalCase names.',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-render-helper-functions.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-render-helper-functions.md',
     },
     messages: {
       noRenderHelperFunctions:

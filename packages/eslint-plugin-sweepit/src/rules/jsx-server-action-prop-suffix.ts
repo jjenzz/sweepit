@@ -82,7 +82,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Enforce async function prop contracts to use action prop names (action or *Action).',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/jsx-server-action-prop-suffix.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/jsx-server-action-prop-suffix.md',
     },
     messages: {
       asyncPropRequiresActionName:

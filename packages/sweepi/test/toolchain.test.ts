@@ -4,6 +4,8 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { initializeToolchain, runSweepi } from '../src/toolchain';
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 describe('initializeToolchain', () => {
   it('creates toolchain files and installs dependencies when missing', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-init-test-'));
@@ -50,7 +52,7 @@ describe('initializeToolchain', () => {
     expect(installCalls[0]?.args).toContain('--no-package-lock');
     expect(installCalls[1]).toEqual({
       command: 'npx',
-      args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+      args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--global', '--yes'],
       cwd: toolchainDirectory,
     });
   });
@@ -88,7 +90,7 @@ describe('initializeToolchain', () => {
     expect(installCalls).toEqual([
       {
         command: 'npx',
-        args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+        args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--global', '--yes'],
         cwd: toolchainDirectory,
       },
     ]);
@@ -143,7 +145,7 @@ describe('initializeToolchain', () => {
     expect(installCalls[0]?.command).toBe('npm');
     expect(installCalls[1]).toEqual({
       command: 'npx',
-      args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--yes'],
+      args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--global', '--yes'],
       cwd: toolchainDirectory,
     });
     expect(await fs.stat(staleFilePath).catch(() => null)).toBeNull();
@@ -151,6 +153,99 @@ describe('initializeToolchain', () => {
 });
 
 describe('runSweepi', () => {
+  it('refreshes the skill when metadata is older than one day', async () => {
+    const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
+    const homeDirectory = path.join(tempDirectory, 'home');
+    const projectDirectory = path.join(tempDirectory, 'project');
+    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
+    const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
+    const pluginPackageDirectoryPath = path.join(
+      toolchainDirectory,
+      'node_modules',
+      'eslint-plugin-sweepit',
+    );
+    await fs.mkdir(projectDirectory, { recursive: true });
+    await fs.mkdir(eslintBinaryPath, { recursive: true });
+    await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
+    await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
+    await fs.writeFile(
+      path.join(pluginPackageDirectoryPath, 'package.json'),
+      '{"name":"eslint-plugin-sweepit"}',
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      'export default [];',
+      'utf8',
+    );
+    await writeToolchainMetadata(
+      toolchainDirectory,
+      new Date(Date.now() - ONE_DAY_MS * 2).toISOString(),
+    );
+
+    const skillInstallCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
+
+    const exitCode = await runSweepi(projectDirectory, {
+      homeDirectory,
+      listChangedFiles: async () => [],
+      runSkillInstallCommand: async (command, args, cwd) => {
+        skillInstallCalls.push({ command, args, cwd });
+      },
+      runLintCommand: async () => 0,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(skillInstallCalls).toEqual([
+      {
+        command: 'npx',
+        args: ['skills', 'add', 'jjenzz/sweepi', '--skill', 'sweepi', '--global', '--yes'],
+        cwd: toolchainDirectory,
+      },
+    ]);
+  });
+
+  it('does not refresh the skill when metadata is within one day', async () => {
+    const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
+    const homeDirectory = path.join(tempDirectory, 'home');
+    const projectDirectory = path.join(tempDirectory, 'project');
+    const toolchainDirectory = path.join(homeDirectory, '.sweepi');
+    const eslintBinaryPath = path.join(toolchainDirectory, 'node_modules', '.bin');
+    const pluginPackageDirectoryPath = path.join(
+      toolchainDirectory,
+      'node_modules',
+      'eslint-plugin-sweepit',
+    );
+    await fs.mkdir(projectDirectory, { recursive: true });
+    await fs.mkdir(eslintBinaryPath, { recursive: true });
+    await fs.mkdir(pluginPackageDirectoryPath, { recursive: true });
+    await fs.writeFile(path.join(eslintBinaryPath, 'eslint'), '', 'utf8');
+    await fs.writeFile(
+      path.join(pluginPackageDirectoryPath, 'package.json'),
+      '{"name":"eslint-plugin-sweepit"}',
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(toolchainDirectory, 'eslint.config.mjs'),
+      'export default [];',
+      'utf8',
+    );
+    await writeToolchainMetadata(toolchainDirectory, new Date().toISOString());
+
+    const skillInstallCalls: Array<{ command: string; args: string[]; cwd: string }> = [];
+
+    const exitCode = await runSweepi(projectDirectory, {
+      homeDirectory,
+      listChangedFiles: async () => [],
+      runSkillInstallCommand: async (command, args, cwd) => {
+        skillInstallCalls.push({ command, args, cwd });
+      },
+      runLintCommand: async () => 0,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(skillInstallCalls).toHaveLength(0);
+  });
+
   it('runs eslint against changed TypeScript files when toolchain is initialized', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
     const homeDirectory = path.join(tempDirectory, 'home');
@@ -181,6 +276,7 @@ describe('runSweepi', () => {
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
+      runSkillInstallCommand: async () => {},
       listChangedFiles: async () => [
         'src/feature.ts',
         'src/component.tsx',
@@ -241,6 +337,7 @@ describe('runSweepi', () => {
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
       all: true,
+      runSkillInstallCommand: async () => {},
       runLintCommand: async (command, args, cwd) => {
         lintCalls.push({ command, args, cwd });
         return 0;
@@ -284,6 +381,7 @@ describe('runSweepi', () => {
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
+      runSkillInstallCommand: async () => {},
       listChangedFiles: async () => ['src/feature.ts'],
       runLintCommand: async () => 2,
     });
@@ -320,6 +418,7 @@ describe('runSweepi', () => {
     let lintAttempted = false;
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
+      runSkillInstallCommand: async () => {},
       listChangedFiles: async () => [],
       runLintCommand: async () => {
         lintAttempted = true;
@@ -355,4 +454,12 @@ describe('runSweepi', () => {
 
 async function readText(filePath: string): Promise<string> {
   return fs.readFile(filePath, 'utf8');
+}
+
+async function writeToolchainMetadata(toolchainDirectory: string, updatedAt: string): Promise<void> {
+  await fs.writeFile(
+    path.join(toolchainDirectory, 'metadata.json'),
+    `${JSON.stringify({ updatedAt }, null, 2)}\n`,
+    'utf8',
+  );
 }

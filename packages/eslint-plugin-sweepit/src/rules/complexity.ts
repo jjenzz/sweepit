@@ -161,7 +161,7 @@ const rule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Enforce a maximum cyclomatic complexity allowed in a program',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/complexity.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/complexity.md',
     },
     schema: [
       {

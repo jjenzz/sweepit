@@ -120,7 +120,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         'Disallow use* functions that return JSX. Hooks should return values, not components.',
-      url: 'https://github.com/jjenzz/sweepit/tree/main/packages/eslint-plugin-sweepit/docs/rules/no-hook-jsx.md',
+      url: 'https://github.com/jjenzz/sweepit/tree/main/skills/sweepi/rules/no-hook-jsx.md',
     },
     messages: {
       noHookJsx: "Function '{{name}}' is named like a hook but returns JSX.",
