@@ -16,12 +16,17 @@ This rule can enforce two contexts:
 
 By default, both contexts are enabled.
 
-### Iterator factory allowance
+### Allowed call patterns
 
-When `allowIteratorFactories` is `true` (default), top-level calls in `for...of` right-hand expressions are allowed when the TypeScript type checker resolves the call result to an iterable type (has `[Symbol.iterator]`).
+Top-level `for...of` source calls can be allowed via glob-like callee patterns.
 
-This is type-based behavior, not a hard-coded callee-name allowlist.
-If type information is unavailable, the rule falls back to allowing top-level `for...of` calls when this option is enabled.
+Default allow patterns:
+
+- `*.entries`
+- `*.values`
+- `*.keys`
+
+Pattern matching applies to the call's callee path (for example, `Object.entries`, `map.values`, `set.keys`).
 
 ## Options
 
@@ -32,7 +37,7 @@ If type information is unavailable, the rule falls back to allowing top-level `f
       "error",
       {
         "contexts": ["for-header", "call-arg"],
-        "allowIteratorFactories": true
+        "allowCallPatterns": ["*.entries", "*.values", "*.keys"]
       }
     ]
   }
@@ -52,13 +57,12 @@ Default:
 ["for-header", "call-arg"]
 ```
 
-### `allowIteratorFactories`
+### `allowCallPatterns`
 
-- Type: `boolean`
-- Default: `true`
+- Type: `string[]`
+- Default: `["*.entries", "*.values", "*.keys"]`
 
-Controls whether supported iterator factory calls are allowed for top-level `for...of` sources.
-Controls whether type-checked iterable-producing calls are allowed for top-level `for...of` sources.
+Controls which top-level `for...of` source calls are exempt from `for-header` reporting.
 
 ## Examples
 
@@ -98,7 +102,7 @@ const builtValue = buildValue(loadedValue);
 consume(builtValue);
 ```
 
-With `allowIteratorFactories: true`:
+With default `allowCallPatterns`:
 
 ```ts
 for (const [key, value] of Object.entries(record)) {

@@ -41,14 +41,6 @@ describe('no-inline-call-expressions', () => {
         consume(entry);
       }
       `,
-      `
-      function createIterable(): Iterable<string> {
-        return new Set(['value']);
-      }
-      for (const value of createIterable()) {
-        consume(value);
-      }
-      `,
       {
         code: `
         for (const entry of getEntries()) {
@@ -81,7 +73,29 @@ describe('no-inline-call-expressions', () => {
           consume(report);
         }
         `,
-        options: [{ contexts: ['for-header'], allowIteratorFactories: false }],
+        options: [{ contexts: ['for-header'], allowCallPatterns: [] }],
+        errors: [{ messageId: 'noCallInForHeader' }],
+      },
+      {
+        code: `
+        function createIterable(): Iterable<string> {
+          return new Set(['value']);
+        }
+        for (const value of createIterable()) {
+          consume(value);
+        }
+        `,
+        errors: [{ messageId: 'noCallInForHeader' }],
+      },
+      {
+        code: `
+        function getItems(): string[] {
+          return ['a', 'b'];
+        }
+        for (const item of getItems()) {
+          consume(item);
+        }
+        `,
         errors: [{ messageId: 'noCallInForHeader' }],
       },
       {

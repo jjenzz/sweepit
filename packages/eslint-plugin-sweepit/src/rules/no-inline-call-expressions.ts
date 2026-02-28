@@ -1,13 +1,13 @@
 import type { Rule } from 'eslint';
-import type ts from 'typescript';
 
 const DEFAULT_CONTEXTS: ReadonlyArray<RuleContextName> = ['for-header', 'call-arg'];
+const DEFAULT_ALLOW_CALL_PATTERNS: ReadonlyArray<string> = ['*.entries', '*.values', '*.keys'];
 
 type RuleContextName = 'for-header' | 'call-arg';
 
 interface RuleOptions {
   contexts?: RuleContextName[];
-  allowIteratorFactories?: boolean;
+  allowCallPatterns?: string[];
 }
 
 function isContextName(value: unknown): value is RuleContextName {
@@ -16,7 +16,7 @@ function isContextName(value: unknown): value is RuleContextName {
 
 function parseOptions(option: RuleOptions | undefined): {
   contexts: ReadonlySet<RuleContextName>;
-  allowIteratorFactories: boolean;
+  allowCallPatterns: ReadonlyArray<string>;
 } {
   const contexts = new Set<RuleContextName>(
     (option?.contexts ?? DEFAULT_CONTEXTS).filter((context) => isContextName(context)),
@@ -25,8 +25,9 @@ function parseOptions(option: RuleOptions | undefined): {
 
   return {
     contexts: contextSet,
-    allowIteratorFactories:
-      typeof option?.allowIteratorFactories === 'boolean' ? option.allowIteratorFactories : true,
+    allowCallPatterns:
+      option?.allowCallPatterns?.filter((pattern) => typeof pattern === 'string') ??
+      DEFAULT_ALLOW_CALL_PATTERNS,
   };
 }
 
@@ -88,52 +89,40 @@ function isForStatementHeaderCall(node: Rule.Node): boolean {
   return false;
 }
 
-function getTypeChecker(context: Readonly<Rule.RuleContext>): ts.TypeChecker | null {
-  const contextWithServices = context as Readonly<Rule.RuleContext> & {
-    parserServices?: {
-      program?: ts.Program;
-      esTreeNodeToTSNodeMap?: WeakMap<object, ts.Node>;
-    };
+function getIdentifierName(node: Rule.Node | null | undefined): string | null {
+  if (!node || node.type !== 'Identifier') return null;
+  return (node as Rule.Node & { name?: string }).name ?? null;
+}
+
+function getCalleeName(node: Rule.Node | null | undefined): string | null {
+  if (!node) return null;
+  if (node.type === 'Identifier') {
+    return getIdentifierName(node);
+  }
+  if (node.type !== 'MemberExpression') return null;
+  const memberExpression = node as Rule.Node & {
+    object?: Rule.Node;
+    property?: Rule.Node;
+    computed?: boolean;
   };
-  const services = contextWithServices.parserServices;
-  const program = services?.program;
-  return program ? program.getTypeChecker() : null;
+  if (memberExpression.computed) return null;
+  const objectName = getCalleeName(memberExpression.object);
+  const propertyName = getIdentifierName(memberExpression.property);
+  if (!propertyName) return null;
+  return objectName ? `${objectName}.${propertyName}` : propertyName;
 }
 
-function getTsNodeForEstreeNode(
-  context: Readonly<Rule.RuleContext>,
-  node: Rule.Node,
-): ts.Node | null {
-  const contextWithServices = context as Readonly<Rule.RuleContext> & {
-    parserServices?: {
-      esTreeNodeToTSNodeMap?: WeakMap<object, ts.Node>;
-    };
-  };
-  const services = contextWithServices.parserServices;
-  const tsNodeMap = services?.esTreeNodeToTSNodeMap;
-  if (!tsNodeMap) return null;
-  return tsNodeMap.get(node as object) ?? null;
+function escapeRegex(pattern: string): string {
+  return pattern.replace(/[|\\{}()[\]^$+?.]/g, '\\$&');
 }
 
-function hasIteratorProperty(type: Readonly<ts.Type>, checker: Readonly<ts.TypeChecker>): boolean {
-  const properties = checker.getPropertiesOfType(checker.getApparentType(type));
-  for (const property of properties) {
-    if (property.getName() === '__@iterator') {
-      return true;
-    }
-  }
-  return false;
+function globPatternToRegex(pattern: string): RegExp {
+  const escaped = escapeRegex(pattern).replace(/\*/g, '.*');
+  return new RegExp(`^${escaped}$`);
 }
 
-function isTypeIterable(type: Readonly<ts.Type>, checker: Readonly<ts.TypeChecker>): boolean {
-  if (hasIteratorProperty(type, checker)) return true;
-  if (type.isUnion()) {
-    return type.types.every((member) => isTypeIterable(member, checker));
-  }
-  if (type.isIntersection()) {
-    return type.types.some((member) => isTypeIterable(member, checker));
-  }
-  return false;
+function matchesPattern(value: string, pattern: string): boolean {
+  return globPatternToRegex(pattern).test(value);
 }
 
 function getNodeKey(node: Rule.Node): string {
@@ -150,21 +139,16 @@ function getNodeKey(node: Rule.Node): string {
 
 function shouldAllowTopLevelForOfCall(
   node: Rule.Node,
-  context: Readonly<Rule.RuleContext>,
-  allowIteratorFactories: boolean,
+  allowCallPatterns: ReadonlyArray<string>,
 ): boolean {
-  if (!allowIteratorFactories) return false;
   const parent = getParent(node);
   if (!parent || parent.type !== 'ForOfStatement') return false;
   const forOfParent = parent as Rule.Node & { right?: Rule.Node | null };
   if (forOfParent.right !== node) return false;
-
-  const checker = getTypeChecker(context);
-  if (!checker) return true;
-  const tsNode = getTsNodeForEstreeNode(context, node);
-  if (!tsNode) return true;
-  const returnType = checker.getTypeAtLocation(tsNode);
-  return isTypeIterable(returnType, checker);
+  const callExpression = node as Rule.Node & { callee?: Rule.Node };
+  const calleeName = getCalleeName(callExpression.callee);
+  if (!calleeName) return false;
+  return allowCallPatterns.some((pattern) => matchesPattern(calleeName, pattern));
 }
 
 const rule: Rule.RuleModule = {
@@ -186,8 +170,11 @@ const rule: Rule.RuleModule = {
             },
             uniqueItems: true,
           },
-          allowIteratorFactories: {
-            type: 'boolean',
+          allowCallPatterns: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
           },
         },
         additionalProperties: false,
@@ -233,8 +220,7 @@ const rule: Rule.RuleModule = {
         if (parsedOptions.contexts.has('for-header') && isForStatementHeaderCall(callExpression)) {
           const allowTopLevelForOfCall = shouldAllowTopLevelForOfCall(
             callExpression,
-            context,
-            parsedOptions.allowIteratorFactories,
+            parsedOptions.allowCallPatterns,
           );
           if (!allowTopLevelForOfCall) {
             reportOnce(callExpression, 'noCallInForHeader');

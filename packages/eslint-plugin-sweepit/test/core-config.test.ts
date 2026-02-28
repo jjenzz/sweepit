@@ -62,7 +62,7 @@ describe('plugin:sweepit/core', () => {
       'error',
       {
         contexts: ['for-header', 'call-arg'],
-        allowIteratorFactories: true,
+        allowCallPatterns: ['*.entries', '*.values', '*.keys'],
       },
     ]);
   });
