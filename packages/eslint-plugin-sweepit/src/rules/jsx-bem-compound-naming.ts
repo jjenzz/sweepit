@@ -69,9 +69,9 @@ const rule: Rule.RuleModule = {
     },
     schema: [],
   },
-  create(context) {
+  create(context: Readonly<Rule.RuleContext>) {
     const localComponents = new Map<string, Rule.Node>();
-    const exportedComponents: ExportedComponent[] = [];
+    let exportedComponents: ExportedComponent[] = [];
 
     function registerLocalComponent(name: string, node: Rule.Node): void {
       if (!isPascalCase(name)) return;
@@ -81,7 +81,47 @@ const rule: Rule.RuleModule = {
     function recordExport(localName: string, exportedName: string, node: Rule.Node): void {
       if (!localComponents.has(localName)) return;
       if (!isPascalCase(exportedName)) return;
-      exportedComponents.push({ localName, exportedName, node });
+      exportedComponents = [...exportedComponents, { localName, exportedName, node }];
+    }
+
+    function recordFunctionDeclarationExport(node: Rule.Node): boolean {
+      if (node.type !== 'FunctionDeclaration') return false;
+      const fn = node as unknown as { id?: Rule.Node | null };
+      const idName = getExportedIdentifierName(fn.id);
+      if (!idName || !fn.id) return true;
+      registerLocalComponent(idName, fn.id);
+      recordExport(idName, idName, fn.id);
+      return true;
+    }
+
+    function recordVariableDeclarationExport(node: Rule.Node): boolean {
+      if (node.type !== 'VariableDeclaration') return false;
+      const variableDeclaration = node as unknown as {
+        declarations?: Array<{ id?: Rule.Node; init?: Rule.Node | null }>;
+      };
+      for (const entry of variableDeclaration.declarations ?? []) {
+        if (!isFunctionLikeComponentInit(entry.init)) continue;
+        const idName = getExportedIdentifierName(entry.id);
+        if (!idName || !entry.id) continue;
+        registerLocalComponent(idName, entry.id);
+        recordExport(idName, idName, entry.id);
+      }
+      return true;
+    }
+
+    function recordExportSpecifiers(specifiers: readonly Rule.Node[] | undefined): void {
+      for (const specifier of specifiers ?? []) {
+        if (specifier.type !== 'ExportSpecifier') continue;
+        const exportSpecifier = specifier as unknown as {
+          local?: Rule.Node;
+          exported?: Rule.Node;
+        };
+        const localName = getExportedIdentifierName(exportSpecifier.local);
+        const exportedName = getExportedIdentifierName(exportSpecifier.exported);
+        if (!localName || !exportedName) continue;
+        if (!exportSpecifier.exported) continue;
+        recordExport(localName, exportedName, exportSpecifier.exported);
+      }
     }
 
     return {
@@ -106,42 +146,10 @@ const rule: Rule.RuleModule = {
         };
 
         if (declaration.source) return;
-
-        if (declaration.declaration?.type === 'FunctionDeclaration') {
-          const fn = declaration.declaration as unknown as { id?: Rule.Node | null };
-          const idName = getExportedIdentifierName(fn.id);
-          if (!idName || !fn.id) return;
-          registerLocalComponent(idName, fn.id);
-          recordExport(idName, idName, fn.id);
-          return;
-        }
-
-        if (declaration.declaration?.type === 'VariableDeclaration') {
-          const variableDeclaration = declaration.declaration as unknown as {
-            declarations?: Array<{ id?: Rule.Node; init?: Rule.Node | null }>;
-          };
-          for (const entry of variableDeclaration.declarations ?? []) {
-            if (!isFunctionLikeComponentInit(entry.init)) continue;
-            const idName = getExportedIdentifierName(entry.id);
-            if (!idName || !entry.id) continue;
-            registerLocalComponent(idName, entry.id);
-            recordExport(idName, idName, entry.id);
-          }
-          return;
-        }
-
-        for (const specifier of declaration.specifiers ?? []) {
-          if (specifier.type !== 'ExportSpecifier') continue;
-          const exportSpecifier = specifier as unknown as {
-            local?: Rule.Node;
-            exported?: Rule.Node;
-          };
-          const localName = getExportedIdentifierName(exportSpecifier.local);
-          const exportedName = getExportedIdentifierName(exportSpecifier.exported);
-          if (!localName || !exportedName) continue;
-          if (!exportSpecifier.exported) continue;
-          recordExport(localName, exportedName, exportSpecifier.exported);
-        }
+        const declarationNode = declaration.declaration;
+        if (declarationNode && recordFunctionDeclarationExport(declarationNode)) return;
+        if (declarationNode && recordVariableDeclarationExport(declarationNode)) return;
+        recordExportSpecifiers(declaration.specifiers);
       },
       ExportDefaultDeclaration(node: Rule.Node) {
         const declaration = node as unknown as { declaration?: Rule.Node | null };
