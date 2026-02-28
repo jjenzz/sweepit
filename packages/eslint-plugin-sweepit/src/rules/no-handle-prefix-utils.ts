@@ -43,6 +43,36 @@ function isFunctionInit(node: Rule.Node | null | undefined): boolean {
   return node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression';
 }
 
+function isUseCallbackIdentifier(node: Rule.Node): boolean {
+  if (node.type !== 'Identifier') return false;
+  const identifier = node as Rule.Node & { name?: unknown };
+  return identifier.name === 'useCallback';
+}
+
+function isUseCallbackMemberExpression(node: Rule.Node): boolean {
+  if (node.type !== 'MemberExpression') return false;
+  const memberExpression = node as Rule.Node & { property?: Rule.Node };
+  const property = asIdentifier(memberExpression.property ?? null);
+  if (!property) return false;
+  return property.name === 'useCallback';
+}
+
+function isUseCallbackCallee(node: Rule.Node | null | undefined): boolean {
+  if (!node) return false;
+  if (isUseCallbackIdentifier(node)) return true;
+  return isUseCallbackMemberExpression(node);
+}
+
+function isCallbackInit(node: Rule.Node | null | undefined): boolean {
+  if (!node || node.type !== 'CallExpression') return false;
+  const callExpression = node as Rule.Node & { callee?: Rule.Node };
+  return isUseCallbackCallee(callExpression.callee ?? null);
+}
+
+function isValidHandleInit(node: Rule.Node | null | undefined): boolean {
+  return isFunctionInit(node) || isCallbackInit(node);
+}
+
 function getHandleNamesFromText(text: string): string[] {
   const matches = text.match(/\bhandle[A-Za-z0-9_$]*\b/g);
   if (!matches) return [];
@@ -79,7 +109,7 @@ function getVariableCandidate(node: Rule.Node): Candidate | null {
     init?: Rule.Node | null;
   };
   const id = getHandleIdentifier(declaration.id);
-  if (!id || !isFunctionInit(declaration.init ?? null)) return null;
+  if (!id || !isValidHandleInit(declaration.init ?? null)) return null;
 
   return {
     name: id.name,
@@ -117,6 +147,69 @@ function getUsedHandleNamesFromAttribute(
   return getHandleNamesFromText(sourceCode.getText(expression));
 }
 
+function getOnPropNameFromIdentifierKey(key: Rule.Node): string | null {
+  if (key.type === 'Identifier') {
+    const identifier = key as Rule.Node & { name?: unknown };
+    if (typeof identifier.name !== 'string') return null;
+    return isOnJsxPropName(identifier.name) ? identifier.name : null;
+  }
+
+  return null;
+}
+
+function getOnPropNameFromLiteralKey(key: Rule.Node): string | null {
+  if (key.type !== 'Literal') return null;
+  const literal = key as Rule.Node & { value?: unknown };
+  if (typeof literal.value !== 'string') return null;
+  return isOnJsxPropName(literal.value) ? literal.value : null;
+}
+
+function getOnPropNameFromObjectProperty(property: Rule.Node): string | null {
+  const propertyNode = property as Rule.Node & {
+    type?: string;
+    computed?: boolean;
+    key?: Rule.Node;
+  };
+  if (propertyNode.type !== 'Property' || propertyNode.computed) return null;
+  if (!propertyNode.key) return null;
+  const identifierName = getOnPropNameFromIdentifierKey(propertyNode.key);
+  if (identifierName) return identifierName;
+  return getOnPropNameFromLiteralKey(propertyNode.key);
+}
+
+function getObjectExpressionProperties(argument: Rule.Node | undefined): Rule.Node[] {
+  if (!argument || argument.type !== 'ObjectExpression') return [];
+  const objectExpression = argument as Rule.Node & { properties?: Rule.Node[] };
+  return objectExpression.properties ?? [];
+}
+
+function getUsedHandleNamesFromObjectPropertyValue(
+  property: Rule.Node,
+  sourceCode: Readonly<SourceCodeLike>,
+): string[] {
+  const onPropName = getOnPropNameFromObjectProperty(property);
+  if (!onPropName) return [];
+
+  const propertyNode = property as Rule.Node & { value?: Rule.Node };
+  if (!propertyNode.value) return [];
+  return getHandleNamesFromText(sourceCode.getText(propertyNode.value));
+}
+
+function getUsedHandleNamesFromSpreadAttribute(
+  spreadAttribute: Rule.Node & { argument?: Rule.Node },
+  sourceCode: Readonly<SourceCodeLike>,
+): string[] {
+  const properties = getObjectExpressionProperties(spreadAttribute.argument);
+  let usedNames: string[] = [];
+
+  for (const property of properties) {
+    const namesFromValue = getUsedHandleNamesFromObjectPropertyValue(property, sourceCode);
+    usedNames = mergeUnique(usedNames, namesFromValue);
+  }
+
+  return usedNames;
+}
+
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -152,6 +245,11 @@ const rule: Rule.RuleModule = {
         const attribute = node as Rule.Node & { name?: unknown; value?: unknown };
         const namesFromAttribute = getUsedHandleNamesFromAttribute(attribute, sourceCode);
         usedNames = mergeUnique(usedNames, namesFromAttribute);
+      },
+      JSXSpreadAttribute(node: Rule.Node) {
+        const spreadAttribute = node as Rule.Node & { argument?: Rule.Node };
+        const namesFromSpread = getUsedHandleNamesFromSpreadAttribute(spreadAttribute, sourceCode);
+        usedNames = mergeUnique(usedNames, namesFromSpread);
       },
       'Program:exit'() {
         for (const candidate of candidates) {

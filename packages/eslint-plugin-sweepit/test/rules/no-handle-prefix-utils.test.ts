@@ -22,9 +22,12 @@ describe('no-handle-prefix-utils', () => {
     valid: [
       'function formatDate(date: Date) { return String(date); }',
       'const applyFilter = () => true;',
+      'function handleClick() {}; <button onClick={handleClick} />;',
       'const handleClick = () => {}; <button onClick={handleClick} />;',
       'const handleClick = (event: MouseEvent) => {}; <button onClick={(event) => handleClick(event)} />;',
       'const handleSubmit = () => {}; <Form onSubmit={handleSubmit} />;',
+      "import { useCallback } from 'react'; const handleClick = useCallback(() => {}, []); <button onClick={handleClick} />;",
+      'const handleClick = () => {}; <button {...{ onClick: handleClick }} />;',
     ],
     invalid: [
       {
@@ -47,6 +50,15 @@ describe('no-handle-prefix-utils', () => {
       },
       {
         code: 'const handleClick = () => {}; <button foo={handleClick} />;',
+        errors: [
+          {
+            messageId: 'noHandlePrefixUtil',
+            data: { name: 'handleClick' },
+          },
+        ],
+      },
+      {
+        code: "import { useCallback } from 'react'; const handleClick = useCallback(() => {}, []); <button foo={handleClick} />;",
         errors: [
           {
             messageId: 'noHandlePrefixUtil',
