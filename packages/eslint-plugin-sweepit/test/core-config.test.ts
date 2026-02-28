@@ -56,7 +56,7 @@ describe('plugin:sweepit/core', () => {
     expect(coreConfig.rules?.['sweepit/no-external-binding-mutation']).toBe('error');
     expect(coreConfig.rules?.['sweepit/complexity']).toEqual([
       'error',
-      { max: 5, variant: 'modified' },
+      { max: 10, variant: 'modified' },
     ]);
   });
 });
