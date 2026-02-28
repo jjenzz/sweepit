@@ -39,7 +39,7 @@ function getCustomJsxName(node: Rule.Node | null | undefined): string | null {
   return null;
 }
 
-function isJsxElementOrFragment(node: Rule.Node | null | undefined): boolean {
+function isJsxElementOrFragment(node: Rule.Node | null | undefined): node is Rule.Node {
   if (!node) return false;
   const typedNode = node as unknown as { type?: string };
   return typedNode.type === 'JSXElement' || typedNode.type === 'JSXFragment';
