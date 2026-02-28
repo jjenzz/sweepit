@@ -25,7 +25,9 @@ function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
         {
           ignoreAccessorPattern: ['*.displayName', '*.current'],
           ignoreMapsAndSets: true,
-          ignoreNonConstDeclarations: true,
+          ignoreNonConstDeclarations: {
+            treatParametersAsConst: true,
+          },
         },
       ],
       'no-param-reassign': ['error', { props: true }],

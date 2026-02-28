@@ -34,7 +34,9 @@ describe('plugin:sweepit/core', () => {
       {
         ignoreAccessorPattern: ['*.displayName', '*.current'],
         ignoreMapsAndSets: true,
-        ignoreNonConstDeclarations: true,
+        ignoreNonConstDeclarations: {
+          treatParametersAsConst: true,
+        },
       },
     ]);
     expect(coreConfig.rules?.['no-param-reassign']).toEqual(['error', { props: true }]);
