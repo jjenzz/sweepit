@@ -57,6 +57,11 @@ describe('no-inline-call-expressions', () => {
         `,
         options: [{ contexts: ['for-header'] }],
       },
+      `
+      items.filter(() => {
+        return shouldKeep(item);
+      });
+      `,
     ],
     invalid: [
       {
@@ -109,6 +114,12 @@ describe('no-inline-call-expressions', () => {
         consume(buildValue(loadValue()));
         `,
         errors: [{ messageId: 'noCallArg' }, { messageId: 'noCallArg' }],
+      },
+      {
+        code: `
+        items.filter(shouldKeep(item));
+        `,
+        errors: [{ messageId: 'noCallArg' }],
       },
     ],
   });

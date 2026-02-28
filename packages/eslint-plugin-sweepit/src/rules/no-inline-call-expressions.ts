@@ -18,9 +18,12 @@ function parseOptions(option: RuleOptions | undefined): {
   contexts: ReadonlySet<RuleContextName>;
   allowCallPatterns: ReadonlyArray<string>;
 } {
-  const contexts = new Set<RuleContextName>(
-    (option?.contexts ?? DEFAULT_CONTEXTS).filter((context) => isContextName(context)),
-  );
+  const contexts = new Set<RuleContextName>();
+  const configuredContexts = option?.contexts ?? DEFAULT_CONTEXTS;
+  for (const context of configuredContexts) {
+    if (!isContextName(context)) continue;
+    contexts.add(context);
+  }
   const contextSet = contexts.size > 0 ? contexts : new Set<RuleContextName>(DEFAULT_CONTEXTS);
 
   return {
@@ -40,15 +43,36 @@ function hasCallExpressionArguments(node: Rule.Node): boolean {
   return 'arguments' in (node as object);
 }
 
+function isDirectCallExpressionArgument(node: Rule.Node): boolean {
+  const parent = getParent(node);
+  if (!parent || parent.type !== 'CallExpression' || !hasCallExpressionArguments(parent)) {
+    return false;
+  }
+  const callParent = parent as Rule.Node & { arguments?: Rule.Node[] };
+  const argumentsList = callParent.arguments ?? [];
+  return argumentsList.includes(node);
+}
+
+function isCallbackFunctionNode(node: Rule.Node): boolean {
+  return node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression';
+}
+
+function hasNodeAsCallArgument(parent: Rule.Node, node: Rule.Node): boolean {
+  if (parent.type !== 'CallExpression' || !hasCallExpressionArguments(parent)) return false;
+  const callParent = parent as Rule.Node & { arguments?: Rule.Node[] };
+  const argumentsList = callParent.arguments ?? [];
+  return argumentsList.includes(node);
+}
+
 function isCallExpressionArgument(node: Rule.Node): boolean {
   let current: Rule.Node | null = node;
   let parent = current ? getParent(current) : null;
   while (current && parent) {
-    if (parent.type === 'CallExpression' && hasCallExpressionArguments(parent)) {
-      const callParent = parent as Rule.Node & { arguments?: Rule.Node[] };
-      if ((callParent.arguments ?? []).includes(current)) {
-        return true;
-      }
+    if (isCallbackFunctionNode(parent) && isDirectCallExpressionArgument(parent)) {
+      return false;
+    }
+    if (hasNodeAsCallArgument(parent, current)) {
+      return true;
     }
     current = parent;
     parent = getParent(current);
@@ -148,7 +172,10 @@ function shouldAllowTopLevelForOfCall(
   const callExpression = node as Rule.Node & { callee?: Rule.Node };
   const calleeName = getCalleeName(callExpression.callee);
   if (!calleeName) return false;
-  return allowCallPatterns.some((pattern) => matchesPattern(calleeName, pattern));
+  for (const pattern of allowCallPatterns) {
+    if (matchesPattern(calleeName, pattern)) return true;
+  }
+  return false;
 }
 
 const rule: Rule.RuleModule = {
@@ -205,8 +232,8 @@ const rule: Rule.RuleModule = {
           test?: Rule.Node | null;
           update?: Rule.Node | null;
         };
-        const headerNodes = [forStatement.init, forStatement.test, forStatement.update].filter(
-          (headerNode): headerNode is Rule.Node => Boolean(headerNode),
+        const headerNodes = [forStatement.init, forStatement.test, forStatement.update].flatMap(
+          (headerNode) => (headerNode ? [headerNode] : []),
         );
         for (const headerNode of headerNodes) {
           if (headerNode.type === 'CallExpression') {
