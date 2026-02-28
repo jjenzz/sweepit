@@ -116,7 +116,7 @@ function isHandlerProp(name: string): boolean {
   return third >= 'A' && third <= 'Z';
 }
 
-function hasVerbSuffix(rest: string, verbs: string[]): boolean {
+function hasVerbSuffix(rest: string, verbs: readonly string[]): boolean {
   const restLower = rest.toLowerCase();
   return verbs.some((verb) => restLower.endsWith(verb));
 }
@@ -124,7 +124,7 @@ function hasVerbSuffix(rest: string, verbs: string[]): boolean {
 /**
  * Detects on{Verb}{Noun} and suggests on{Noun}{Verb} when possible.
  */
-function getVerbSuffixSuggestion(propName: string, verbs: string[]): string | null {
+function getVerbSuffixSuggestion(propName: string, verbs: readonly string[]): string | null {
   if (!isHandlerProp(propName)) return null;
 
   const rest = propName.slice(2);
@@ -174,10 +174,10 @@ const rule: Rule.RuleModule = {
       },
     ],
   },
-  create(context) {
+  create(context: Readonly<Rule.RuleContext>) {
     const options = (context.options[0] as RuleOptions | undefined) ?? {};
     const verbs = mergeAllowedValues(DEFAULT_VERBS, options.extendVerbs);
-    verbs.sort((a, b) => b.length - a.length);
+    const sortedVerbs = [...verbs].sort((a, b) => b.length - a.length);
 
     return {
       JSXAttribute(node: Rule.Node) {
@@ -189,9 +189,9 @@ const rule: Rule.RuleModule = {
         if (!isHandlerProp(propName)) return;
 
         const rest = propName.slice(2);
-        if (hasVerbSuffix(rest, verbs)) return;
+        if (hasVerbSuffix(rest, sortedVerbs)) return;
 
-        const suggestion = getVerbSuffixSuggestion(propName, verbs);
+        const suggestion = getVerbSuffixSuggestion(propName, sortedVerbs);
 
         context.report({
           node: attr.name,
