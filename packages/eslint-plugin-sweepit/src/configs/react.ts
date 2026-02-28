@@ -43,6 +43,7 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'sweepit/no-title-case-props': 'error',
       'sweepit/no-custom-kebab-case-props': 'error',
       'sweepit/no-set-prefix-utils': 'error',
+      'sweepit/no-handle-prefix-utils': 'error',
       'sweepit/no-useless-hook': 'error',
       'sweepit/no-hook-jsx': 'error',
       'sweepit/no-exported-context-hooks': 'error',

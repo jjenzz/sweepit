@@ -48,6 +48,7 @@ describe('plugin:sweepit/react', () => {
     expect(reactConfig.rules?.['sweepit/no-title-case-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-custom-kebab-case-props']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-set-prefix-utils']).toBe('error');
+    expect(reactConfig.rules?.['sweepit/no-handle-prefix-utils']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-useless-hook']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-hook-jsx']).toBe('error');
     expect(reactConfig.rules?.['sweepit/no-exported-context-hooks']).toBe('error');

@@ -4,6 +4,7 @@ import { createReactConfig } from './configs/react';
 import noTitleCaseProps from './rules/no-title-case-props';
 import noCustomKebabCaseProps from './rules/no-custom-kebab-case-props';
 import noSetPrefixUtils from './rules/no-set-prefix-utils';
+import noHandlePrefixUtils from './rules/no-handle-prefix-utils';
 import noUselessHook from './rules/no-useless-hook';
 import noHookJsx from './rules/no-hook-jsx';
 import noExportedContextHooks from './rules/no-exported-context-hooks';
@@ -35,6 +36,7 @@ const pluginBase: ESLint.Plugin = {
     'no-title-case-props': noTitleCaseProps,
     'no-custom-kebab-case-props': noCustomKebabCaseProps,
     'no-set-prefix-utils': noSetPrefixUtils,
+    'no-handle-prefix-utils': noHandlePrefixUtils,
     'no-useless-hook': noUselessHook,
     'no-hook-jsx': noHookJsx,
     'no-exported-context-hooks': noExportedContextHooks,
