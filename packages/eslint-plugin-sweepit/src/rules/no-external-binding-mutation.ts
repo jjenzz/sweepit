@@ -152,6 +152,13 @@ function isReadonlyTyped(type: ts.Type, checker: ts.TypeChecker): boolean {
     return type.types.every((entry) => isReadonlyTyped(entry, checker));
   }
 
+  const ambiguousFlags =
+    ts.TypeFlags.Any |
+    ts.TypeFlags.Unknown |
+    ts.TypeFlags.TypeParameter |
+    ts.TypeFlags.InstantiableNonPrimitive;
+  if ((type.flags & ambiguousFlags) !== 0) return false;
+
   if (isPrimitiveType(type)) return true;
 
   const typeText = checker.typeToString(type);
@@ -170,7 +177,7 @@ function isReadonlyTyped(type: ts.Type, checker: ts.TypeChecker): boolean {
     return false;
   }
 
-  return true;
+  return false;
 }
 
 const rule: Rule.RuleModule = {
