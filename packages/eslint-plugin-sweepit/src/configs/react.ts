@@ -1,4 +1,5 @@
 import type { ESLint, Linter } from 'eslint';
+import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactNoEffectPlugin from 'eslint-plugin-react-you-might-not-need-an-effect';
@@ -8,6 +9,7 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
     plugins: {
       sweepit: sweepitPlugin,
       react: reactPlugin,
+      '@typescript-eslint': tseslint.plugin,
     },
     languageOptions: {
       parser: tseslint.parser,
