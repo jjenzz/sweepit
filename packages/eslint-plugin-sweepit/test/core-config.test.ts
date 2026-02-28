@@ -58,5 +58,12 @@ describe('plugin:sweepit/core', () => {
       'error',
       { max: 10, variant: 'modified' },
     ]);
+    expect(coreConfig.rules?.['sweepit/no-inline-call-expressions']).toEqual([
+      'error',
+      {
+        contexts: ['for-header', 'call-arg'],
+        allowIteratorFactories: true,
+      },
+    ]);
   });
 });

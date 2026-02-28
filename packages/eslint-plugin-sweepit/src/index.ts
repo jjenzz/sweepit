@@ -26,6 +26,7 @@ import jsxCompoundPartExportNaming from './rules/jsx-compound-part-export-naming
 import noPropDrilling from './rules/no-prop-drilling';
 import jsxFlatOwnerTree from './rules/jsx-flat-owner-tree';
 import complexity from './rules/complexity';
+import noInlineCallExpressions from './rules/no-inline-call-expressions';
 
 const pluginBase: ESLint.Plugin = {
   meta: {
@@ -58,6 +59,7 @@ const pluginBase: ESLint.Plugin = {
     'no-prop-drilling': noPropDrilling,
     'jsx-flat-owner-tree': jsxFlatOwnerTree,
     complexity,
+    'no-inline-call-expressions': noInlineCallExpressions,
   },
 };
 

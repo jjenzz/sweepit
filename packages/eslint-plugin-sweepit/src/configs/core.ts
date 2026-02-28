@@ -36,6 +36,13 @@ function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       'sweepit/no-external-binding-mutation': 'error',
       'sweepit/complexity': ['error', { max: 10, variant: 'modified' }],
+      'sweepit/no-inline-call-expressions': [
+        'error',
+        {
+          contexts: ['for-header', 'call-arg'],
+          allowIteratorFactories: true,
+        },
+      ],
     },
   };
 
