@@ -74,6 +74,15 @@ describe('no-external-binding-mutation', () => {
       },
       {
         code: `
+          import path from 'node:path';
+          function getFileStem(filename: string) {
+            const base = path.basename(filename);
+            return base;
+          }
+        `,
+      },
+      {
+        code: `
           function createApi() {
             const store = new Map<string, string>();
             return {

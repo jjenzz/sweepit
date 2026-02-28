@@ -147,6 +147,12 @@ function isParameterVariable(variable: VariableLike): boolean {
   return defs.some((definition) => definition.type === 'Parameter');
 }
 
+function isImportedVariable(variable: VariableLike | null): boolean {
+  if (!variable) return false;
+  const defs = variable.defs ?? [];
+  return defs.some((definition) => definition.type === 'ImportBinding');
+}
+
 function getIdentifier(node: any): IdentifierLike | null {
   if (node?.type !== 'Identifier' || typeof node?.name !== 'string') return null;
   return node as IdentifierLike;
@@ -422,6 +428,8 @@ const rule: Rule.RuleModule = {
 
         const identifier = getIdentifier(memberExpression.object);
         if (!identifier) return;
+        const variable = resolveVariable(sourceCode, identifier);
+        if (isImportedVariable(variable)) return;
         if (!shouldReportIdentifier(identifier, functionNode)) return;
         if (receiverIsReadonlyTyped(memberExpression.object)) return;
         reportReadonlyRequired(memberExpression.object, identifier);
