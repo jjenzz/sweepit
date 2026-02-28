@@ -1,6 +1,5 @@
 import type { ESLint, Linter } from 'eslint';
-import tsParser from '@typescript-eslint/parser';
-import tsEslintPlugin from '@typescript-eslint/eslint-plugin';
+import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactNoEffectPlugin from 'eslint-plugin-react-you-might-not-need-an-effect';
@@ -9,11 +8,11 @@ function createReactConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
   const reactConfig: Linter.Config = {
     plugins: {
       sweepit: sweepitPlugin,
-      react: reactPlugin as unknown as ESLint.Plugin,
-      '@typescript-eslint': tsEslintPlugin as unknown as ESLint.Plugin,
+      react: reactPlugin,
+      '@typescript-eslint': tseslint.plugin,
     },
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',

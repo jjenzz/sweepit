@@ -41,6 +41,7 @@ This improves accuracy for rules like:
 
 The exported core config enables:
 
+- all rules from `typescript-eslint` `recommended` and `recommendedTypeChecked` flat configs
 - `functional/immutable-data`
 - `no-param-reassign` with `{ props: true }`
 - `prefer-const`
@@ -56,7 +57,7 @@ The exported React config is opinionated. It enables:
   - `eslint-plugin-react`
   - `eslint-plugin-react-hooks`
   - `eslint-plugin-react-you-might-not-need-an-effect`
-  - `@typescript-eslint/eslint-plugin` (with `@typescript-eslint/parser`)
+  - `typescript-eslint` (flat plugin + parser APIs)
 - Third-party rules:
   - `react/jsx-handler-names`
   - `react/jsx-no-constructed-context-values`
