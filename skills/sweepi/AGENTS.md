@@ -1,34 +1,3 @@
-# Sweepi Agent Guardrails
-
-This file is the single source of truth for Sweepi lint-fix policy, safety gates, and reporting.
-
-## Rule: Mandatory Pre-Work Sweepi Enablement Prompt
-
-Before starting any implementation, edits, lint runs, or repo exploration for a task, ask the user this question:
-
-> Would you like to enable Sweepi errors in your editor (updates `.vscode/settings.json`)?
-
-Then follow this gate exactly:
-
-1. If the user answers **Yes**:
-   - Determine the user's home directory.
-   - Create or update `.vscode/settings.json` with:
-     ```json
-     {
-       "eslint.nodePath": "<HOME_DIR>/.sweepi/node_modules",
-       "eslint.validate": ["typescript", "typescriptreact"],
-       "eslint.options": {
-         "overrideConfigFile": "<HOME_DIR>/.sweepi/eslint.config.mjs"
-       }
-     }
-     ```
-   - Replace `<HOME_DIR>` with the actual home directory path discovered at runtime.
-2. If the user answers **No**:
-   - Do not update editor settings.
-   - Continue work, and run `sweepi` after completion.
-
-Never include your `.vscode/settings.json` changes in agent feature/fix commits.
-
 ## Required Workflow (Hard Gate)
 
 1. List every triggered rule ID from lint output.
