@@ -35,6 +35,7 @@ This improves accuracy for rules like:
 - `sweepit/no-object-props`
 - `sweepit/no-optional-props-without-defaults`
 - `@typescript-eslint/no-floating-promises`
+- `@typescript-eslint/no-explicit-any`
 - `@typescript-eslint/switch-exhaustiveness-check`
 
 ## What `configs.core` includes
@@ -44,6 +45,7 @@ The exported core config enables:
 - `functional/immutable-data`
 - `no-param-reassign` with `{ props: true }`
 - `prefer-const`
+- `@typescript-eslint/no-explicit-any`
 - `@typescript-eslint/switch-exhaustiveness-check`
 - `sweepit/no-external-binding-mutation`
 - `sweepit/complexity` with `{ max: 5, variant: 'modified' }`

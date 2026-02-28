@@ -40,5 +40,5 @@ Initialization installs the Sweepi LLM skill with `npx skills add jjenzz/sweepi`
 
 ## Packages
 
-- `packages/eslint-plugin-sweepit` - The rule engine. This package contains Sweepit's opinionated ESLint rules and shared flat configs (`core`, `react`) used to enforce guardrails.
+- `packages/eslint-plugin-sweepit` - The rule engine. This package contains Sweepit's opinionated ESLint rules and shared flat configs (`core`, `react`) used to enforce guardrails, including TypeScript safety defaults like `@typescript-eslint/no-explicit-any`.
 - `packages/sweepi` - The execution wrapper. This CLI bootstraps an isolated toolchain in `~/.sweepi` and runs ESLint against a target project without changing that project's dependency graph.
