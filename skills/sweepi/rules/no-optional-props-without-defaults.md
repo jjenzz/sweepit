@@ -22,9 +22,9 @@ Inherited props from `extends` chains are ignored.
 
 ## Options
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `ignore` | `string[]` | `[]` | Optional prop-name glob patterns to ignore (for example `on*`, `ref`, `render`). |
+| Option   | Type       | Default | Description                                                                      |
+| -------- | ---------- | ------- | -------------------------------------------------------------------------------- |
+| `ignore` | `string[]` | `[]`    | Optional prop-name glob patterns to ignore (for example `on*`, `ref`, `render`). |
 
 ## Examples
 

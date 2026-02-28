@@ -225,7 +225,7 @@
 #### 🚀 Enhancement
 
 - chore(eslint-plugin): compose flat recommended configs [#3](https://github.com/jjenzz/sweepit/pull/3) ([@jjenzz](https://github.com/jjenzz))
-- refactor(eslint-plugin): scope no-array/object-props to *Props type contracts [#4](https://github.com/jjenzz/sweepit/pull/4) ([@jjenzz](https://github.com/jjenzz))
+- refactor(eslint-plugin): scope no-array/object-props to \*Props type contracts [#4](https://github.com/jjenzz/sweepit/pull/4) ([@jjenzz](https://github.com/jjenzz))
 
 #### Authors: 1
 

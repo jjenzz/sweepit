@@ -182,7 +182,10 @@ const rule: Rule.RuleModule = {
     const optionalPropsByTypeName = new Map<string, Set<string>>();
 
     function storeTypeOptionalProps(typeName: string, members: Rule.Node[]): void {
-      optionalPropsByTypeName.set(typeName, collectOptionalPropNamesFromMembers(members, isIgnoredPropName));
+      optionalPropsByTypeName.set(
+        typeName,
+        collectOptionalPropNamesFromMembers(members, isIgnoredPropName),
+      );
     }
 
     function reportOptionalPropsWithoutDefaults(componentName: string, paramNode: Rule.Node): void {

@@ -456,7 +456,10 @@ async function readText(filePath: string): Promise<string> {
   return fs.readFile(filePath, 'utf8');
 }
 
-async function writeToolchainMetadata(toolchainDirectory: string, updatedAt: string): Promise<void> {
+async function writeToolchainMetadata(
+  toolchainDirectory: string,
+  updatedAt: string,
+): Promise<void> {
   await fs.writeFile(
     path.join(toolchainDirectory, 'metadata.json'),
     `${JSON.stringify({ updatedAt }, null, 2)}\n`,

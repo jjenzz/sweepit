@@ -476,7 +476,13 @@ const rule: Rule.RuleModule = {
           params?: Rule.Node[];
           body?: Rule.Node;
         };
-        const component = analyzeComponent(node, fn.id?.name, fn.params, fn.body, ignorePropsSpread);
+        const component = analyzeComponent(
+          node,
+          fn.id?.name,
+          fn.params,
+          fn.body,
+          ignorePropsSpread,
+        );
         if (!component) return;
         components.set(component.name, component);
       },
@@ -508,10 +514,16 @@ const rule: Rule.RuleModule = {
       },
       'Program:exit'() {
         const memo = new Map<string, number>();
-        const flaggedComponents: Array<{ component: ComponentPassThroughRecord; depth: number }> = [];
+        const flaggedComponents: Array<{ component: ComponentPassThroughRecord; depth: number }> =
+          [];
 
         for (const component of components.values()) {
-          const depth = computePassThroughDepth(component.name, components, memo, new Set<string>());
+          const depth = computePassThroughDepth(
+            component.name,
+            components,
+            memo,
+            new Set<string>(),
+          );
           if (depth <= allowedDepth) {
             continue;
           }

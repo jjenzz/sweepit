@@ -30,7 +30,9 @@ function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-function getMethodName(parent: { key?: { type?: string; name?: string; value?: string } }): string | null {
+function getMethodName(parent: {
+  key?: { type?: string; name?: string; value?: string };
+}): string | null {
   const key = parent.key;
   if (!key) return null;
   if (key.type === 'Identifier') return asString(key.name);
