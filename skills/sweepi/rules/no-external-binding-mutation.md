@@ -19,6 +19,10 @@ Reported operations:
 - update operations (`value++`, `value += ...`)
 - method calls where the identifier is the receiver (`value.set(...)`, `value.clear()`)
 
+Not reported:
+
+- method calls on imported bindings (`path.basename(...)`, `fs.readFileSync(...)`)
+
 Receiver call requirement:
 
 - calls on external or parameter bindings are only allowed when the receiver is readonly-typed (for example `ReadonlyArray<T>`, `ReadonlyMap<K, V>`, `ReadonlySet<T>`, or `readonly` tuples).
