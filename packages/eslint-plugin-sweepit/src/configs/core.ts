@@ -33,14 +33,17 @@ function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
       'no-param-reassign': ['error', { props: true }],
       'max-params': ['error', { max: 4 }],
       'prefer-const': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       'sweepit/no-external-binding-mutation': 'error',
       'sweepit/complexity': ['error', { max: 5, variant: 'modified' }],
     },
   };
 
-  return [...(tsEslintPlugin.configs['flat/recommended'] as Linter.Config[]), coreConfig];
+  return [
+    ...(tsEslintPlugin.configs['flat/recommended'] as Linter.Config[]),
+    ...(tsEslintPlugin.configs['flat/recommended-type-checked'] as Linter.Config[]),
+    coreConfig,
+  ];
 }
 
 export { createCoreConfig };

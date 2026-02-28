@@ -25,9 +25,13 @@ describe('plugin:sweepit/core', () => {
     const hasTsEslintRecommended = coreConfigList.some((config) => {
       return config.rules?.['@typescript-eslint/ban-ts-comment'] === 'error';
     });
+    const hasNoFloatingPromises = coreConfigList.some((config) => {
+      return config.rules?.['@typescript-eslint/no-floating-promises'] === 'error';
+    });
 
     expect(coreConfigList.length).toBeGreaterThanOrEqual(1);
     expect(hasTsEslintRecommended).toBe(true);
+    expect(hasNoFloatingPromises).toBe(true);
     expect(coreConfig.plugins?.functional).toBeDefined();
     expect(coreConfig.plugins?.['@typescript-eslint']).toBeDefined();
     expect(coreConfig.languageOptions?.parser).toBeDefined();
@@ -46,7 +50,6 @@ describe('plugin:sweepit/core', () => {
     expect(coreConfig.rules?.['no-param-reassign']).toEqual(['error', { props: true }]);
     expect(coreConfig.rules?.['max-params']).toEqual(['error', { max: 4 }]);
     expect(coreConfig.rules?.['prefer-const']).toBe('error');
-    expect(coreConfig.rules?.['@typescript-eslint/no-floating-promises']).toBe('error');
     expect(coreConfig.rules?.['@typescript-eslint/switch-exhaustiveness-check']).toBe('error');
     expect(coreConfig.plugins?.sweepit).toBeDefined();
     expect(coreConfig.rules?.['sweepit/complexity']).toEqual([
