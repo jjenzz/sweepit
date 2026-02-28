@@ -92,28 +92,57 @@ function collectSelfClosingCustomJsxNamesFromReturn(
 ): void {
   if (statement.type !== 'ReturnStatement') return;
   const returnStatement = statement as unknown as { argument?: Rule.Node | null };
-  const argument = returnStatement.argument;
-  if (!isJsxElementOrFragment(argument)) return;
-  collectSelfClosingCustomJsxNames(argument, names);
+  collectSelfClosingCustomJsxNamesFromExpression(returnStatement.argument, names);
+}
+
+function collectSelfClosingCustomJsxNamesFromExpression(
+  expression: Rule.Node | null | undefined,
+  names: Set<string>,
+): void {
+  if (!expression) return;
+  if (isJsxElementOrFragment(expression)) {
+    collectSelfClosingCustomJsxNames(expression, names);
+    return;
+  }
+
+  const typedExpression = expression as unknown as {
+    type?: string;
+    expression?: Rule.Node;
+    left?: Rule.Node;
+    right?: Rule.Node;
+    consequent?: Rule.Node;
+    alternate?: Rule.Node;
+  };
+
+  if (typedExpression.type === 'ParenthesizedExpression') {
+    collectSelfClosingCustomJsxNamesFromExpression(typedExpression.expression, names);
+    return;
+  }
+
+  if (typedExpression.type === 'LogicalExpression') {
+    collectSelfClosingCustomJsxNamesFromExpression(typedExpression.left, names);
+    collectSelfClosingCustomJsxNamesFromExpression(typedExpression.right, names);
+    return;
+  }
+
+  if (typedExpression.type === 'ConditionalExpression') {
+    collectSelfClosingCustomJsxNamesFromExpression(typedExpression.consequent, names);
+    collectSelfClosingCustomJsxNamesFromExpression(typedExpression.alternate, names);
+  }
 }
 
 function getSelfClosingCustomChildren(body: Rule.Node | null | undefined): Set<string> {
   const names = new Set<string>();
   if (!body) return names;
-  if (isJsxElementOrFragment(body)) {
-    collectSelfClosingCustomJsxNames(body, names);
-    return names;
-  }
-
   const typedBody = body as unknown as { type?: string; body?: Rule.Node[] };
-  if (typedBody.type !== 'BlockStatement') {
+  if (typedBody.type === 'BlockStatement') {
+    for (const statement of typedBody.body ?? []) {
+      collectSelfClosingCustomJsxNamesFromReturn(statement, names);
+    }
     return names;
   }
 
-  for (const statement of typedBody.body ?? []) {
-    collectSelfClosingCustomJsxNamesFromReturn(statement, names);
-  }
-
+  collectSelfClosingCustomJsxNamesFromExpression(body, names);
   return names;
 }
 
@@ -134,7 +163,7 @@ function computeLongestChain(
   if (cached != null) return cached;
 
   if (activeComponents.has(componentName)) {
-    return [componentName];
+    return [];
   }
   activeComponents.add(componentName);
 
@@ -221,11 +250,12 @@ const rule: Rule.RuleModule = {
     return {
       FunctionDeclaration(node: Rule.Node) {
         const fn = node as unknown as {
-          id?: { name?: string } | null;
+          id?: Rule.Node | null;
           params?: Rule.Node[];
           body?: Rule.Node;
         };
-        registerComponent(fn.id?.name, fn.body, node);
+        const id = fn.id as unknown as { name?: string } | null;
+        registerComponent(id?.name, fn.body, fn.id ?? node);
       },
       VariableDeclarator(node: Rule.Node) {
         const declaration = node as unknown as {

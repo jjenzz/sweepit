@@ -103,6 +103,30 @@ describe('jsx-flat-owner-tree', () => {
           }
 
           function Page() {
+            return <Root />;
+          }
+        `,
+        options: [{ allowedChainDepth: 1 }],
+        errors: [
+          {
+            messageId: 'deepParentTree',
+            data: {
+              component: 'Root',
+              depth: '2',
+              allowedDepth: '1',
+              chain: 'Root -> Page',
+              nextHandoff: 'Page',
+            },
+          },
+        ],
+      },
+      {
+        code: `
+          function Root() {
+            return <Page />;
+          }
+
+          function Page() {
             return <Header />;
           }
 
@@ -129,6 +153,56 @@ describe('jsx-flat-owner-tree', () => {
               depth: '2',
               allowedDepth: '1',
               chain: 'Page -> Header',
+              nextHandoff: 'Header',
+            },
+          },
+        ],
+      },
+      {
+        code: `
+          function Root({ enabled }: { enabled: boolean }) {
+            return enabled ? (<Page />) : (enabled && <Sidebar />);
+          }
+
+          function Page() {
+            return <Header />;
+          }
+
+          function Header() {
+            return <UserArea />;
+          }
+
+          function UserArea() {
+            return <div>User</div>;
+          }
+
+          function Sidebar() {
+            return <Footer />;
+          }
+
+          function Footer() {
+            return <div>Footer</div>;
+          }
+        `,
+        options: [{ allowedChainDepth: 2 }],
+        errors: [
+          {
+            messageId: 'deepParentTree',
+            data: {
+              component: 'Root',
+              depth: '4',
+              allowedDepth: '2',
+              chain: 'Root -> Page -> Header -> UserArea',
+              nextHandoff: 'Page',
+            },
+          },
+          {
+            messageId: 'deepParentTree',
+            data: {
+              component: 'Page',
+              depth: '3',
+              allowedDepth: '2',
+              chain: 'Page -> Header -> UserArea',
               nextHandoff: 'Header',
             },
           },
