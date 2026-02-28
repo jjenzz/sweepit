@@ -1,17 +1,16 @@
 import type { ESLint, Linter } from 'eslint';
-import tsParser from '@typescript-eslint/parser';
-import tsEslintPlugin from '@typescript-eslint/eslint-plugin';
+import tseslint from 'typescript-eslint';
 import functionalPlugin from 'eslint-plugin-functional';
 
 function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
   const coreConfig: Linter.Config = {
     plugins: {
-      '@typescript-eslint': tsEslintPlugin as unknown as ESLint.Plugin,
+      '@typescript-eslint': tseslint.plugin as unknown as ESLint.Plugin,
       functional: functionalPlugin as unknown as ESLint.Plugin,
       sweepit: sweepitPlugin,
     },
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -40,8 +39,8 @@ function createCoreConfig(sweepitPlugin: ESLint.Plugin): Linter.Config[] {
   };
 
   return [
-    ...(tsEslintPlugin.configs['flat/recommended'] as Linter.Config[]),
-    ...(tsEslintPlugin.configs['flat/recommended-type-checked'] as Linter.Config[]),
+    ...(tseslint.configs.recommended as Linter.Config[]),
+    ...(tseslint.configs.recommendedTypeChecked as Linter.Config[]),
     coreConfig,
   ];
 }

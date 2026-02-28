@@ -41,7 +41,7 @@ This improves accuracy for rules like:
 
 The exported core config enables:
 
-- all rules from `@typescript-eslint/eslint-plugin` `flat/recommended` and `flat/recommended-type-checked` configs
+- all rules from `typescript-eslint` `recommended` and `recommendedTypeChecked` flat configs
 - `functional/immutable-data`
 - `no-param-reassign` with `{ props: true }`
 - `prefer-const`
