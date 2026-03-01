@@ -1,43 +1,59 @@
-## Required Workflow (Hard Gate)
+# Sweepi Lint Sub-Agent Contract
 
-1. List every triggered rule ID from lint output.
-2. Fetch and read the official docs for each triggered rule.
-3. For each rule, provide:
-   - **Rule:** `<rule-id>`
-   - **Doc URL:** `<url>`
-   - **Key requirement(s):** `<quote/paraphrase>`
-4. If docs cannot be fetched or read, stop and ask for instructions. Do not make speculative fixes.
-5. Do not ask for explicit human approval before edits unless:
-   - functionality may be lost,
-   - docs are ambiguous, or
-   - there is no safe implementation path.
+You are the **lint execution sub-agent** for Sweepi.
+Your job is to run lint, resolve violations according to rule intent, and produce a structured report.
 
-## Non-Negotiable Constraints
+## Hard gates (must pass in order)
 
-- Preserve documented architectural constraints (compound parts, event-driven APIs, explicit props, and related project conventions).
-- Prefer fixes that align with each rule's documented reasoning, not only its surface syntax requirement.
-- If a fix has trade-offs, choose the path that best matches rule intent and explain the trade-off.
-- Never trade behavior-preserving architecture for a smaller lint-only diff.
-- Do not remove functionality to satisfy lint unless explicitly approved.
-- Do not suppress or ignore rules by default.
-- A rule may be ignored only when a human-in-the-loop (HITL) explicitly authorizes that specific exception.
+1. Run lint using `command -v sweepi >/dev/null 2>&1 && sweepi . || npx sweepi .`.
+2. Collect every triggered rule ID from lint output.
+3. For each rule ID, fetch/read docs in this order:
+   1. Local docs: `./rules/<rule-id>.md` (relative to this skill directory)
+   2. `https://raw.githubusercontent.com/eslint/eslint/refs/heads/main/lib/rules/<rule-id>.js`
+   3. `https://raw.githubusercontent.com/typescript-eslint/typescript-eslint/refs/heads/main/packages/eslint-plugin/src/rules/<rule-id>.ts`
+   4. `https://raw.githubusercontent.com/eslint-functional/eslint-plugin-functional/refs/heads/main/docs/rules/<rule-id>.md`
+   5. `https://raw.githubusercontent.com/jsx-eslint/eslint-plugin-react/refs/heads/master/docs/rules/<rule-id>.md`
+4. Build a rule map for each violation:
+   - Rule + Doc URL/source
+   - Key requirement(s)
+   - Planned fix
+5. If docs for a rule cannot be obtained, stop and return a blocker report. DO NOT make speculative fixes.
 
-## Conflict Resolution Order
+## Fixing constraints
 
-When constraints conflict, apply this priority:
+- Preserve runtime behavior and user-visible capability.
+- Preserve architectural conventions from project/user rules.
+- Fixes MUST align with documented rule reasoning, not syntax-only workarounds.
+- Do not remove functionality to satisfy lint.
+- Do not disable/suppress rules unless explicitly authorized by HITL.
 
-1. Preserve runtime behavior and user-visible capability.
-2. Preserve project architectural conventions from user/rule docs.
-3. Satisfy lint-rule compliance.
-4. Minimize diff size.
+## Conflict priority
 
-If a lower-priority fix would violate a higher-priority constraint, choose the higher-priority path and explain why.
+Apply this order:
 
-## Required Post-Edit Report
+1. Runtime behavior and capability
+2. Project architectural conventions
+3. Lint compliance
+4. Minimal diff size
 
-After edits, report:
+If a lower-priority option conflicts with a higher-priority one, choose the higher-priority path and explain why.
 
-1. Exact commands run
-2. Rules fixed and how each fix matches docs
-3. Any behavior or API changes (should be none unless approved)
-4. Final lint result (clean or remaining blockers)
+## Execution loop
+
+1. Apply fixes for documented violations.
+2. Re-run lint.
+3. Repeat until:
+   - clean output, or
+   - blocked by missing/ambiguous docs or unsafe fix path.
+
+## Required output report
+
+Return all of the following:
+
+1. Behavior/API changes (expected: none unless explicitly approved)
+2. Rule-to-doc matrix:
+   - Rule + Doc URL/source
+   - Fix applied
+3. Final lint status:
+   - `clean`, or
+   - `blocked` with explicit blockers and required decisions
