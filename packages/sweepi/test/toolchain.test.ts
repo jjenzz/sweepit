@@ -187,7 +187,6 @@ describe('runSweepi', () => {
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
-      listChangedFiles: async () => [],
       runSkillInstallCommand: async (command, args, cwd) => {
         skillInstallCalls.push({ command, args, cwd });
       },
@@ -235,7 +234,6 @@ describe('runSweepi', () => {
 
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
-      listChangedFiles: async () => [],
       runSkillInstallCommand: async (command, args, cwd) => {
         skillInstallCalls.push({ command, args, cwd });
       },
@@ -246,7 +244,7 @@ describe('runSweepi', () => {
     expect(skillInstallCalls).toHaveLength(0);
   });
 
-  it('runs eslint against changed TypeScript files when toolchain is initialized', async () => {
+  it('runs eslint against provided files when toolchain is initialized', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
     const homeDirectory = path.join(tempDirectory, 'home');
     const projectDirectory = path.join(tempDirectory, 'project');
@@ -277,12 +275,7 @@ describe('runSweepi', () => {
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
       runSkillInstallCommand: async () => {},
-      listChangedFiles: async () => [
-        'src/feature.ts',
-        'src/component.tsx',
-        'src/component.test.tsx',
-        'README.md',
-      ],
+      files: ['src/feature.ts', 'src/component.tsx', 'src/component.test.tsx', 'README.md'],
       runLintCommand: async (command, args, cwd) => {
         lintCalls.push({ command, args, cwd });
         return 0;
@@ -382,14 +375,14 @@ describe('runSweepi', () => {
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
       runSkillInstallCommand: async () => {},
-      listChangedFiles: async () => ['src/feature.ts'],
+      files: ['src/feature.ts'],
       runLintCommand: async () => 2,
     });
 
     expect(exitCode).toBe(2);
   });
 
-  it('returns 0 when there are no changed files', async () => {
+  it('returns 0 when no lint targets are provided', async () => {
     const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'sweepi-run-test-'));
     const homeDirectory = path.join(tempDirectory, 'home');
     const projectDirectory = path.join(tempDirectory, 'project');
@@ -419,7 +412,6 @@ describe('runSweepi', () => {
     const exitCode = await runSweepi(projectDirectory, {
       homeDirectory,
       runSkillInstallCommand: async () => {},
-      listChangedFiles: async () => [],
       runLintCommand: async () => {
         lintAttempted = true;
         return 1;

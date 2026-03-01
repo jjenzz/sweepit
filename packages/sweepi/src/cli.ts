@@ -36,6 +36,7 @@ async function run(): Promise<void> {
   const lintExitCode = await runSweepi(parsedRunOptions.projectDirectory, {
     onStatus: logStatus,
     all: parsedRunOptions.all,
+    files: parsedRunOptions.files,
   });
   process.exitCode = lintExitCode;
 }
@@ -43,10 +44,12 @@ async function run(): Promise<void> {
 function printHelp(): void {
   process.stdout.write(`Usage:
   sweepi [project-dir] [--all]
+  sweepi [project-dir] --file <path> [--file <path> ...]
   sweepi init
 
 Commands:
-  [project-dir]    Run eslint on changed ts/tsx files (default: current directory)
+  [project-dir]    Project directory to lint (default: current directory)
+  --file <path>    Lint specific file(s), repeatable
   --all            Run eslint on all ts/tsx files
   init [--force, -f]    Create ~/.sweepi and install rules
 
@@ -77,15 +80,42 @@ function parseForceResetOption(argumentsList: string[]): boolean {
 interface ParsedRunOptions {
   projectDirectory: string;
   all: boolean;
+  files: string[];
 }
 
 function parseRunOptions(argumentsList: string[]): ParsedRunOptions {
   let projectDirectory = '.';
   let all = false;
+  const files: string[] = [];
 
-  for (const argument of argumentsList) {
+  for (let argumentIndex = 0; argumentIndex < argumentsList.length; argumentIndex += 1) {
+    const argument = argumentsList[argumentIndex];
+    if (argument === undefined) continue;
+
     if (argument === '--all') {
       all = true;
+      continue;
+    }
+
+    if (argument === '--file') {
+      const nextArgument = argumentsList[argumentIndex + 1];
+
+      if (nextArgument === undefined || nextArgument.startsWith('-')) {
+        throw new Error('Missing value for "--file". Try "sweepi --help".');
+      }
+
+      files.push(nextArgument);
+      argumentIndex += 1;
+      continue;
+    }
+
+    if (argument.startsWith('--file=')) {
+      const filePath = argument.slice('--file='.length);
+      if (filePath.length === 0) {
+        throw new Error('Missing value for "--file". Try "sweepi --help".');
+      }
+
+      files.push(filePath);
       continue;
     }
 
@@ -100,9 +130,14 @@ function parseRunOptions(argumentsList: string[]): ParsedRunOptions {
     projectDirectory = argument;
   }
 
+  if (all && files.length > 0) {
+    throw new Error('Flags "--all" and "--file" cannot be used together. Try "sweepi --help".');
+  }
+
   return {
     projectDirectory,
     all,
+    files,
   };
 }
 

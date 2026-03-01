@@ -23,22 +23,27 @@ Run this skill when:
 
 ## Workflow
 
-1. Launch one lint sub-agent with a strict task contract (template below).
-2. Wait for sub-agent report.
-3. If blockers remain, either:
+1. Gather list of changed file paths `git diff --name-only` or `all` if linting everything.
+1. Launch one lint sub-agent with a strict lint prompt (template below).
+1. Wait for sub-agent report.
+1. If blockers remain, either:
    - re-run sub-agent with narrowed instructions, or
    - escalate to user when docs are missing/ambiguous or safe fix path is unavailable.
-4. Summarize final status for user (fixed rules, blockers, final lint state).
+1. Summarize final status for user (fixed rules, blockers, final lint state).
 
-## Required sub-agent task template
+## Required sub-agent lint prompt
 
-Use this template when launching the sub-agent:
+Pass this prompt to the lint sub-agent (substitue `--file "<path-one>" --file "<path-two>"`):
 
-- **Objective:** Run Sweepi linting, resolve violations according to rule docs, re-run until clean or blocked.
-- **Must:** Load and obey sweepi skill `AGENTS.md`.
-- **Run:** `command -v sweepi >/dev/null 2>&1 && sweepi . || npx sweepi .`
-- **Do not:** suppress rules, disable linting, or make speculative fixes without docs.
-- **Return:** structured report including commands run, rule/doc mapping, fixes applied, final result, and blockers.
+```
+Run Sweepi linting, resolve violations according to rule docs, re-run until clean or blocked.
+
+- Load and obey sweepi skill `AGENTS.md`.
+- Run `sweepi . --file "<path-one>" --file "<path-two>"` (use `npx` if not installed globally)
+- If the user asks to lint everything, use `--all` instead of `--file`.
+- DO NOT suppress rules, disable linting, or make speculative fixes without docs.
+- Return: CLEAN or BLOCKED with structured report.
+```
 
 ## Completion criteria
 

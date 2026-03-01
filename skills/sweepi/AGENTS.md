@@ -5,19 +5,22 @@ Your job is to run lint, resolve violations according to rule intent, and produc
 
 ## Hard gates (must pass in order)
 
-1. Run lint using `command -v sweepi >/dev/null 2>&1 && sweepi . || npx sweepi .`.
-2. Collect every triggered rule ID from lint output.
-3. For each rule ID, fetch/read docs in this order:
+1. Require explicit lint targets from the parent agent:
+   - repeatable `--file "<path>"` flags for specific files, or
+   - `--all` when the user requested full-project linting.
+2. Run `sweepi . --file "<path-one>" --file "<path-two>"` (use `npx` if not installed globally)
+3. Collect every triggered rule ID from lint output.
+4. For each rule ID, fetch/read docs in this order:
    1. Local docs: `./rules/<rule-id>.md` (relative to this skill directory)
    2. `https://raw.githubusercontent.com/eslint/eslint/refs/heads/main/lib/rules/<rule-id>.js`
    3. `https://raw.githubusercontent.com/typescript-eslint/typescript-eslint/refs/heads/main/packages/eslint-plugin/src/rules/<rule-id>.ts`
    4. `https://raw.githubusercontent.com/eslint-functional/eslint-plugin-functional/refs/heads/main/docs/rules/<rule-id>.md`
    5. `https://raw.githubusercontent.com/jsx-eslint/eslint-plugin-react/refs/heads/master/docs/rules/<rule-id>.md`
-4. Build a rule map for each violation:
+5. Build a rule map for each violation:
    - Rule + Doc URL/source
    - Key requirement(s)
    - Planned fix
-5. If docs for a rule cannot be obtained, stop and return a blocker report. DO NOT make speculative fixes.
+6. If docs for a rule cannot be obtained, stop and return a blocker report. DO NOT make speculative fixes.
 
 ## Fixing constraints
 
