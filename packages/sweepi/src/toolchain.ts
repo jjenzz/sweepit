@@ -74,9 +74,9 @@ interface RunSweepiOptions {
   homeDirectory?: string;
   runLintCommand?: (command: string, args: string[], cwd: string) => Promise<number>;
   runSkillInstallCommand?: (command: string, args: string[], cwd: string) => Promise<void>;
-  listChangedFiles?: (projectDirectory: string) => Promise<string[]>;
   onStatus?: (message: string) => void;
   all?: boolean;
+  files?: string[];
 }
 
 interface SkillMetadata {
@@ -171,9 +171,9 @@ async function runSweepi(
   );
   const configPath = path.join(toolchainDirectory, TOOLCHAIN_CONFIG_NAME);
   const runLintCommand = options.runLintCommand ?? runLintCommandWithExecutable;
-  const listChangedFiles = options.listChangedFiles ?? listChangedFilesFromGit;
   const onStatus = options.onStatus;
   const lintAllFiles = options.all === true;
+  const lintFiles = options.files ?? [];
 
   const eslintInstalled = await pathExists(eslintBinaryPath);
   const pluginInstalled = await pathExists(pluginPackagePath);
@@ -197,20 +197,19 @@ async function runSweepi(
 
   onStatus?.(`Using Sweepi toolchain in ${toolchainDirectory}`);
 
-  if (!lintAllFiles) {
-    const changedFiles = await listChangedFiles(resolvedProjectDirectory);
-    if (changedFiles.length === 0) {
-      onStatus?.('No changed files to lint.');
-      return 0;
-    }
+  if (!lintAllFiles && lintFiles.length === 0) {
+    onStatus?.('No lint targets provided. Pass --file <path> (repeatable) or use --all.');
+    return 0;
+  }
 
+  if (lintFiles.length > 0) {
     return runLintCommand(
       eslintBinaryPath,
       [
         '--config',
         configPath,
         '--no-error-on-unmatched-pattern',
-        ...changedFiles.map((filePath) => path.resolve(resolvedProjectDirectory, filePath)),
+        ...lintFiles.map((filePath) => path.resolve(resolvedProjectDirectory, filePath)),
       ],
       resolvedProjectDirectory,
     );
@@ -221,57 +220,6 @@ async function runSweepi(
     ['--config', configPath, resolvedProjectDirectory],
     resolvedProjectDirectory,
   );
-}
-
-async function listChangedFilesFromGit(projectDirectory: string): Promise<string[]> {
-  const [unstagedFiles, stagedFiles, untrackedFiles] = await Promise.all([
-    runGitListCommand(projectDirectory, ['diff', '--name-only', '--diff-filter=ACMR']),
-    runGitListCommand(projectDirectory, ['diff', '--cached', '--name-only', '--diff-filter=ACMR']),
-    runGitListCommand(projectDirectory, ['ls-files', '--others', '--exclude-standard']),
-  ]);
-
-  return Array.from(new Set([...unstagedFiles, ...stagedFiles, ...untrackedFiles]));
-}
-
-function runGitListCommand(projectDirectory: string, args: string[]): Promise<string[]> {
-  return new Promise<string[]>((resolve, reject) => {
-    const child = childProcess.spawn('git', args, {
-      cwd: projectDirectory,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env,
-    });
-    let output = '';
-    let errorOutput = '';
-
-    child.stdout.on('data', (chunk) => {
-      output += chunk.toString();
-    });
-
-    child.stderr.on('data', (chunk) => {
-      errorOutput += chunk.toString();
-    });
-
-    child.on('error', (error) => {
-      reject(error);
-    });
-
-    child.on('exit', (code) => {
-      if (code !== 0) {
-        reject(
-          new Error(
-            `Failed to list changed files with "git ${args.join(' ')}" in ${projectDirectory}.\n${errorOutput.trim()}`,
-          ),
-        );
-        return;
-      }
-
-      const files = output
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0);
-      resolve(files);
-    });
-  });
 }
 
 async function ensureFile(filePath: string, content: string): Promise<void> {

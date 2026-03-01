@@ -1,43 +1,62 @@
 ---
 name: sweepi
-description: Runs Sweepi and resolves lint violations using Sweepit rule docs. Trigger when asked to run Sweepi, when linting (or asked to lint), and before proposing commits.
+description: Orchestrate Sweepi linting via a dedicated sub-agent, apply rule-aligned fixes, and report outcomes. Trigger when asked to run sweepi or linting, and before proposing commits.
 ---
 
-# Sweepi Skill
+# Sweepi Skill (Orchestrator)
 
-Lint-fix safety workflow and reporting.
+This skill is for the **parent agent**. It must delegate lint execution and lint-fix loops to a **sub-agent**.
 
 ## When to run
 
 Run this skill when:
 
-1. The user explicitly asks to run `sweepi`.
-2. You are about to commit or recommend committing code changes.
-3. You are linting code, or the user asks you to lint code.
+1. The user asks to run `sweepi` or linting.
+2. You are about to propose a commit.
+3. You changed files that may trigger lint rules.
 
-Read the AGENTS.md file that lives next to this skill before proceeding.
+## Non-Negotiable Execution Rule
 
-## Execution workflow
+- The parent agent **must not** run `sweepi` directly.
+- Linting and lint-fix work **must** be performed by a dedicated sub-agent.
+- Required sub-agent type: `shell` (preferred) or `generalPurpose` if shell is unavailable.
 
-1. Run in this order:
-   - First try global CLI: `sweepi .`
-   - If `sweepi` is not found, fallback to: `npx sweepi .`
-2. Parse all reported issues.
-3. Before making edits, follow the required pre-edit gate in local `AGENTS.md`.
-4. For each rule violation, open the rule docs in `./rules/<rule-id>.md` alongside this `SKILL.md`.
-   - If one does not exist locally, try:
-     - `https://raw.githubusercontent.com/eslint/refs/heads/main/lib/rules/<rule-id>.js`
-     - `https://raw.githubusercontent.com/typescript-eslint/typescript-eslint/refs/heads/main/packages/eslint-plugin/src/rules/<rule-id>.ts`
-     - `https://raw.githubusercontent.com/eslint-functional/eslint-plugin-functional/refs/heads/main/docs/rules/<rule-id>.md`
-     - `https://raw.githubusercontent.com/jsx-eslint/eslint-plugin-react/refs/heads/master/docs/rules/<rule-id>.md`
-5. Apply fixes that match documented rule intent, not just a minimal syntax pass.
-6. Re-run `sweepi` until issues are resolved (or document blockers if resolution is impossible).
+## Workflow
 
-## Boundaries
+1. Gather list of changed file paths `git diff --name-only` or `all` if linting everything.
+1. Launch one lint sub-agent with a strict lint prompt (template below).
+1. Wait for sub-agent report.
+1. If blockers remain, either:
+   - re-run sub-agent with narrowed instructions, or
+   - escalate to user when docs are missing/ambiguous or safe fix path is unavailable.
+1. Summarize final status for user (fixed rules, blockers, final lint state).
 
-Use `AGENTS.md` for:
+## Required sub-agent lint prompt
 
-- Hard-gate pre-edit analysis format
-- Non-negotiable constraints
-- Conflict resolution order
-- Required post-edit report format
+Pass this prompt to the lint sub-agent (substitue `--file "<path-one>" --file "<path-two>"`):
+
+```
+Run Sweepi linting, resolve violations according to rule docs, re-run until clean or blocked.
+
+- Load and obey sweepi skill `AGENTS.md`.
+- Run `sweepi . --file "<path-one>" --file "<path-two>"` (use `npx` if not installed globally)
+- If the user asks to lint everything, use `--all` instead of `--file`.
+- DO NOT suppress rules, disable linting, or make speculative fixes without docs.
+- Return: CLEAN or BLOCKED with structured report.
+```
+
+## Completion criteria
+
+This skill is complete only when one of the following is true:
+
+1. Sweepi output is clean, or
+2. A blocker report is produced with explicit rule IDs, missing/ambiguous docs, and requested human decision.
+
+## Handoff format (parent → user)
+
+Include:
+
+1. Final lint status (clean/blocked)
+2. Rules fixed and rationale
+3. Any behavior/API impact (should be none unless approved)
+4. Remaining blockers and required decisions
